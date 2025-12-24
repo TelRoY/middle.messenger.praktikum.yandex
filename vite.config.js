@@ -3,5 +3,5 @@ import handlebars from 'vite-plugin-handlebars';
 
 export default defineConfig({
     server: { host: 'localhost' },
-    plugins: [handlebars()],
+    plugins: [handlebars({})],
 })

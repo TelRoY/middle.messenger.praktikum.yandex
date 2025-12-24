@@ -10,18 +10,29 @@
 </head>
 
 <body>
-    <div class="autorization">
-        <div class="header">
+    <div class="login-section">
+
+        <div class="login-header">
             <h1>Вход</h1>
+            <p>Войдите в свой аккаунт, чтобы продолжить</p>
         </div>
-        <div class="main">
-            <form action="">логин</form>
-            <form action="">пароль</form>
+
+        <div class="login-main">
+            <form action="" class="login">
+                <label for="login">Логин</label>
+                <input type="text" id="login" name="login" placeholder="Введите логин или email">
+            </form>
+            <form action="" class="password">
+                <label for="password">Пароль</label>
+                <input type="text" id="password" name="password" placeholder="Введите пароль">
+            </form>
         </div>
-        <div class="footer">
-            <button class="autorize">Авторизоваться</button>
-            <button class="newakk">Нет аккаунта?</button>
+
+        <div class="login-buttons">
+            <button type="submit" class="button button-autorization"><a href="">Авторизоваться</a></button>
+            <button type="button" class="button button-registration"><a href="registration.html">Регистрация</a></button>
         </div>
+
     </div>
 
     <script type="module" src="../src/main.js"></script>
