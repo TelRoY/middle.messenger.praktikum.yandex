@@ -16,7 +16,7 @@
         "postcss-mixins": "^12.1.2",
         "postcss-nested": "^7.0.2",
         "postcss-preset-env": "^10.5.0",
-        "vite": "^7.2.4",
+        "vite": "^7.3.0",
         "vite-plugin-handlebars": "^2.0.0"
     },
     "dependencies": {

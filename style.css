@@ -1,69 +1,15 @@
-* {
-  box-sizing: border-box;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  line-height: normal;
-  font-style: normal;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  background: linear-gradient(140deg, #a99fe2 40%, #2575fc 50%);
+.feature {
   display: flex;
-  justify-content: center;
   align-items: center;
-  min-height: 100vh;
-}
-
-.container {
-  background: rgba(255, 255, 255, 0.788);
-  padding: 50px 40px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  color: rgb(59, 51, 51);
-
-  & h1 {
-    font-size: 38px;
-    margin-bottom: 20px;
-    font-weight: 700;
-    text-align: center;
-    color: rgb(59, 51, 51);
-  }
-
-  & p {
-    text-align: center;
-    font-size: 20px;
-    color: rgb(59, 51, 51);
-    line-height: 1.6;
-    opacity: 0.9;
-  }
-
-  & .features {
-    margin-top: 30px;
-  }
-
-  & .feature {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-
-    & i {
-        margin-right: 12px;
-        font-size: 1.2rem;
-        color: #a8e6cf;
-      }
-  }
-}
-
-.footer {
-  text-align: center;
-  margin-top: 25px;
-  color: #ffffff;
-  font-size: 16px;
+  margin: 15px;
 
   & a {
-    color: #6a11cb;
+    color: var(--color-primary);
+    font-size: var(--font-size-md);
+    font-weight: 500;
     text-decoration: none;
+    &:hover {
+      text-decoration: underline;
+    }
   }
 }

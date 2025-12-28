@@ -1,55 +1,61 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
-
-<head>
+  <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="../public/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/public/vite.svg" />
     <!-- Заменить картинку на логотип мессенджера -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MyMate</title>
-</head>
+  </head>
 
-<body>
-    <div class="login-section">
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Регистрация</h1>
+      </div>
 
-        <div class="login-header">
-            <h1>Регистрация</h1>
-        </div>
+      <div class="main">
+        <form action="" class="login">
+          <label for="first_name">Имя</label>
+          <input type="text" id="first_name" name="first_name" placeholder="" />
+        </form>
+        <form action="" class="login">
+          <label for="second_name">Фамилия</label>
+          <input
+            type="text"
+            id="second_name"
+            name="second_name"
+            placeholder=""
+          />
+        </form>
+        <form action="" class="login">
+          <label for="login">Логин</label>
+          <input type="text" id="slogin" name="login" placeholder="" />
+        </form>
+        <form action="" class="login">
+          <label for="email">Электронная почта</label>
+          <input type="text" id="email" name="email" placeholder="" />
+        </form>
+        <form action="" class="login">
+          <label for="password">Пароль</label>
+          <input type="text" id="password" name="password" placeholder="" />
+        </form>
+        <form action="" class="login">
+          <label for="phone">Телефон</label>
+          <input type="text" id="phone" name="phone" placeholder="" />
+        </form>
+      </div>
 
-        <div class="login-main">
-            <form action="" class="login">
-                <label for="first_name">Имя</label>
-                <input type="text" id="first_name" name="first_name" placeholder="">
-            </form>
-            <form action="" class="login">
-                <label for="second_name">Фамилия</label>
-                <input type="text" id="second_name" name="second_name" placeholder="">
-            </form>
-            <form action="" class="login">
-                <label for="login">Логин</label>
-                <input type="text" id="slogin" name="login" placeholder="">
-            </form>
-            <form action="" class="login">
-                <label for="email">Электронная почта</label>
-                <input type="text" id="email" name="email" placeholder="">
-            </form>
-            <form action="" class="login">
-                <label for="password">Пароль</label>
-                <input type="text" id="password" name="password" placeholder="">
-            </form>
-            <form action="" class="login">
-                <label for="phone">Телефон</label>
-                <input type="text" id="phone" name="phone" placeholder="">
-            </form>
-        </div>
-
-        <div class="login-buttons">
-            <button type="submit" class="button button-authorization"><a href="">Зарегистрироваться</a></button>
-        </div>
-
+      <div class="login-buttons">
+        <button type="submit" class="button button-registration">
+          <a href="">Регистрация</a>
+        </button>
+        <button type="button" class="button button-home">
+          <a href="/index.html">На главную</a>
+        </button>
+      </div>
     </div>
 
     <script type="module" src="/src/main.js"></script>
-</body>
-
+  </body>
 </html>

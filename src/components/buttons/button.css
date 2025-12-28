@@ -1,0 +1,43 @@
+.button {
+  padding: var(--spacing-sm);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-buttons {
+  display: flex;
+  justify-content: space-around;
+
+  & .button-authorization {
+    background: var(--gradient-button);
+    color: white;
+
+    & a {
+      color: white;
+      text-decoration: none;
+    }
+  }
+
+  & .button-registration {
+    background: white;
+    border: 2px solid #6a11cb;
+
+    & a {
+      color: #081c3d;
+      text-decoration: none;
+    }
+  }
+  
+  & .button-home {
+    background: white;
+    border: 2px solid #6a11cb;
+
+    & a {
+      color: #081c3d;
+      text-decoration: none;
+    }
+  }
+}

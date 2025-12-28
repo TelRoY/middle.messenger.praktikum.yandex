@@ -9,13 +9,13 @@
   </head>
 
   <body>
-    <div class="login-section">
-      <div class="login-header">
+    <div class="container">
+      <div class="header">
         <h1>MyMate</h1>
         <p>Войдите в свой аккаунт, чтобы продолжить</p>
       </div>
 
-      <div class="login-main">
+      <div class="main">
         <form action="" class="login">
           <label for="login">Логин</label>
           <input
@@ -34,16 +34,24 @@
             placeholder="Введите пароль"
           />
         </form>
+        <div class="login-buttons">
+          <button type="submit" class="button button-authorization">
+            <a href="">Авторизоваться</a>
+          </button>
+          <button type="button" class="button button-registration">
+            <a href="/src/pages/registration/registration.html">Регистрация</a>
+          </button>
+        </div>
       </div>
 
-      <div class="login-buttons">
-        <button type="submit" class="button button-authorization">
-          <a href="">Авторизоваться</a>
-        </button>
-        <button type="button" class="button button-registration">
-          <a href="/src/pages/registration/registration.html">Регистрация</a>
-        </button>
+      <div class="footer">
+        <p>
+          Нажимая "Авторизация" или "Регистрация", вы соглашаетесь с
+          <a href="#">Условиями использования</a> и
+          <a href="#">Политикой конфиденциальности</a>
+        </p>
       </div>
+      
     </div>
 
     <script type="module" src="/src/main.js"></script>

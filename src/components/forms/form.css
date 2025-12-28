@@ -1,0 +1,16 @@
+form {
+  margin-bottom: var(--spacing-md);
+
+  & label {
+    font-weight: 600;
+    font-size: var(--font-size-md);
+  }
+
+  & input {
+    width: 100%;
+    padding: var(--spacing-sm);
+    border: 2px solid #98a8af;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+  }
+}
