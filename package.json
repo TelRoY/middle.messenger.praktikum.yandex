@@ -6,7 +6,9 @@
     "scripts": {
         "dev": "vite",
         "build": "vite build",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "lint": "eslint src",
+        "format": "prettier --write src"
     },
     "devDependencies": {
         "autoprefixer": "^10.4.23",
@@ -17,7 +19,7 @@
         "postcss-nested": "^7.0.2",
         "postcss-preset-env": "^10.5.0",
         "vite": "^7.3.0",
-        "vite-plugin-handlebars": "^2.0.0"
+        "vite-plugin-handlebars": "^1.5.0"
     },
     "dependencies": {
         "handlebars": "^4.7.8",

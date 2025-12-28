@@ -1,15 +1,16 @@
-module.exports = {
+export default {
   plugins: {
-    'postcss-import': {},
-    'postcss-mixins': {},
-    'postcss-nested': {},
-    'postcss-preset-env': {
+    "postcss-import": {},
+    "postcss-mixins": {},
+    "postcss-nested": {},
+    "postcss-preset-env": {
       stage: 3,
-      browsers: 'last 2 versions',
+      browsers: "last 2 versions",
       features: {
-        'nesting-rules': true
-      }
+        "nesting-rules": true,
+      },
     },
-    'autoprefixer': {}
-  }
-}
+    autoprefixer: {},
+    cssnano: process.env.NODE_ENV === "production" ? {} : false,
+  },
+};

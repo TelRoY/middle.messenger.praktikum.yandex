@@ -5,6 +5,7 @@
   font-size: var(--font-size-md);
   font-weight: 600;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .login-buttons {
@@ -30,7 +31,7 @@
       text-decoration: none;
     }
   }
-  
+
   & .button-home {
     background: white;
     border: 2px solid #6a11cb;
