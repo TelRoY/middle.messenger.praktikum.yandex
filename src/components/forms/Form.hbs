@@ -1,0 +1,41 @@
+{{! 
+  Компонент поля формы
+  
+  Параметры:
+  - id: id поля (обязательно)
+  - name: name поля (обязательно)
+  - label: текст лейбла
+  - type: тип поля (text, password, email, tel, number, date)
+  - placeholder: placeholder текст
+  - required: обязательно ли поле (true/false)
+  - value: значение по умолчанию
+  - className: дополнительные CSS классы
+  - disabled: отключено ли поле
+  - readonly: только для чтения
+}}
+<div class="form-group {{className}}">
+    {{#if label}}
+      <label for="{{id}}">{{label}}{{#if required}} *{{/if}}</label>
+    {{/if}}
+  
+    <input
+        type="{{type}}"
+        id="{{id}}"
+        name="{{name}}"
+        class="form-input"
+        {{#if placeholder}}placeholder="{{placeholder}}"{{/if}}
+        {{#if value}}value="{{value}}"{{/if}}
+        {{#if required}}required{{/if}}
+        {{#if disabled}}disabled{{/if}}
+        {{#if readonly}}readonly{{/if}}
+        {{#if autofocus}}autofocus{{/if}}
+    />
+
+    {{#if helpText}}
+    <div class="form-help">{{helpText}}</div>
+    {{/if}}
+
+    {{#if error}}
+    <div class="form-error">{{error}}</div>
+    {{/if}}
+</div>

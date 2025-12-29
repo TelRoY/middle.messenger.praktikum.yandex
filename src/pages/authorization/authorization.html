@@ -35,19 +35,16 @@
           />
         </form>
         <div class="login-buttons">
-          <button
-            type="submit"
-            class="button button-authorization"
-            onclick="location.href=''"
-          >
-            Авторизоваться
-          </button>
-          <a
-            href="/src/pages/registration/registration.html"
-            class="button button-registration"
-          >
-            Регистрация
-          </a>
+          {{> buttons/Button 
+            text="Авторизация" 
+            variant="authorization" 
+            href=""
+          }}
+          {{> buttons/Button 
+            text="Регистрация" 
+            variant="registration" 
+            href="../registration/registration.html"
+          }}
         </div>
       </div>
 

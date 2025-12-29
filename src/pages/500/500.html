@@ -14,10 +14,12 @@
         <h1>500</h1>
         <p>Упс...уже фиксим</p>
       </div>
-      <div class="footer">
-        <div class="login-buttons">
-          <a href="/index.html" class="button button-home"> На главную </a>
-        </div>
+      <div class="login-buttons">
+          {{> buttons/Button 
+            text="На главную" 
+            variant="home" 
+            href="../../../index.html"
+          }}
       </div>
     </div>
 

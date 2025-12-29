@@ -14,10 +14,12 @@
         <h1>404</h1>
         <p>Не туда попали</p>
       </div>
-      <div class="footer">
-        <div class="login-buttons">
-          <a href="/index.html" class="button button-home"> На главную </a>
-        </div>
+      <div class="login-buttons">
+          {{> buttons/Button 
+            text="На главную" 
+            variant="home" 
+            href="../../../index.html"
+          }}
       </div>
     </div>
 

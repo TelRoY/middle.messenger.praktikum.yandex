@@ -1,7 +1,8 @@
 .feature-list {
   display: flex;
   align-items: center;
-  margin: 15px;
+  flex-direction: column;
+  align-items: flex-start;
 
   & a {
     color: var(--color-primary);
@@ -12,4 +13,8 @@
       text-decoration: underline;
     }
   }
+}
+
+.feature-item {
+  margin-bottom: 5px;
 }

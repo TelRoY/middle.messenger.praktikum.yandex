@@ -2,16 +2,16 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="../public/vite.svg" />
-    <!-- Заменить картинку на логотип мессенджера -->
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MyMate</title>
+    <title>{{title}}</title>
   </head>
 
   <body>
     <div class="container">
+      
       <div class="header">
-        <h1>MyMate</h1>
+        <h1>{{title}}</h1>
         <p>
           Добро пожаловать в новейший, современный, безопасный и быстрый
           мессенджер!
@@ -20,26 +20,12 @@
 
       <nav class="main">
         <ul class="feature-list">
+          {{#each menuItems}}
           <li class="feature-item">
-            <a href="/src/pages/authorization/authorization.html">Авторизация</a>
+            <a href="{{url}}">{{title}}</a>
           </li>
+          {{/each}}
         </ul>
-        <ul class="feature-list">
-          <li class="feature-item"></li>
-          <a href="/src/pages/registration/registration.html">Регистрация</a>
-        </ul>
-        <ul class="feature-list">
-          <li class="feature-item"></li>
-          <a href="/src/pages/home/home.html">Главная</a>
-        </ul>
-        <ul class="feature-list">
-          <li class="feature-item"></li>
-          <a href="/src/pages/404/404.html">404</a>
-        </ul>
-        <ul class="feature-list">
-          <li class="feature-item"></li>
-          <a href="/src/pages/500/500.html">500</a>
-        </u>
       </nav>
 
       <div class="footer">

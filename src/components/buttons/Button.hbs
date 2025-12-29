@@ -1,0 +1,16 @@
+  {{!-- Использование:
+  {{> src/components/buttons/button 
+    text="Кнопка" 
+    variant="primary" 
+    href="/page.html"
+  }} --}}
+
+{{#if href}}
+<a href="{{href}}" class="button button-{{variant}}">
+  {{text}}
+</a>
+{{else}}
+<button type="button" class="button button-{{variant}}">
+  {{text}}
+</button>
+{{/if}}
