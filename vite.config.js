@@ -8,18 +8,12 @@ import Handlebars from "handlebars";
 const loadPartials = (partialsDir) => {
   const partials = {};
 
-  if (!fs.existsSync(partialsDir)) {
-    console.warn(`Папка partials не найдена: ${partialsDir}`);
-    return partials;
-  }
-
   const registerPartial = (name, content) => {
     try {
       // Проверяем синтаксис перед регистрацией
       Handlebars.compile(content);
       partials[name] = content;
       Handlebars.registerPartial(name, content);
-      console.log(`✓ Загружен partial: ${name}`);
     } catch (error) {
       console.error(`✗ Ошибка в partial ${name}:`, error.message);
     }
@@ -51,11 +45,8 @@ const createHandlebarsPlugin = (options = {}) => {
   const partialsDir = options.partialsDir || "src/components";
   const context = options.context || {};
 
-  console.log("Инициализация Handlebars плагина...");
-  console.log("Папка partials:", resolve(partialsDir));
-
   // Загружаем partials
-  const partials = loadPartials(resolve(partialsDir));
+  loadPartials(resolve(partialsDir));
 
   // Регистрируем хелперы
   Handlebars.registerHelper("json", function (context) {
@@ -73,13 +64,6 @@ const createHandlebarsPlugin = (options = {}) => {
       order: "pre",
       handler(html, ctx) {
         const filename = ctx.filename || "unknown";
-        console.log(`\n=== Обработка файла: ${path.basename(filename)} ===`);
-
-        // Если в HTML уже есть комментарий об ошибке, пропускаем
-        if (html.includes("Handlebars Error:")) {
-          console.log("Пропускаем - уже содержит ошибку Handlebars");
-          return html;
-        }
 
         try {
           // Создаем контекст для страницы
@@ -87,23 +71,13 @@ const createHandlebarsPlugin = (options = {}) => {
             ...context,
             pageName: path.basename(filename, ".html"),
             menuItems: [
-              { title: "Авторизация", url: "./src/pages/authorization/authorization.html" },
-              { title: "Регистрация", url: "./src/pages/registration/registration.html" },
-              { title: "Главная", url: "./src/pages/home/home.html" },
-              { title: "404", url: "./src/pages/404/404.html" },
-              { title: "500", url: "./src/pages/500/500.html" },
+              { title: "Авторизация", url: "/src/pages/authorization/authorization.html" },
+              { title: "Регистрация", url: "/src/pages/registration/registration.html" },
+              { title: "Главная", url: "/src/pages/home/home.html" },
+              { title: "404", url: "/src/pages/404/404.html" },
+              { title: "500", url: "/src/pages/500/500.html" },
             ],
           };
-
-          console.log("Контекст:", {
-            title: pageContext.title,
-            siteName: pageContext.siteName,
-            currentYear: pageContext.currentYear,
-            hasMenuItems: pageContext.menuItems?.length || 0,
-          });
-
-          console.log("Контекст:", pageContext);
-          console.log("Доступные partials:", Object.keys(partials));
 
           // Компилируем
           const template = Handlebars.compile(html, {
@@ -112,24 +86,14 @@ const createHandlebarsPlugin = (options = {}) => {
           });
 
           const result = template(pageContext);
-          console.log("✓ Компиляция успешна");
           return result;
         } catch (error) {
-          console.error('✗ Ошибка компиляции Handlebars:');
-          console.error('Сообщение:', error.message);
-          
-          // Вместо добавления комментария, просто возвращаем оригинальный HTML
-          // но выводим ошибку в консоль
-          console.error('Возвращаем оригинальный HTML без обработки');
-          
-          // Возвращаем чистый HTML без комментариев об ошибках
-          // Можно закомментировать Handlebars выражения чтобы страница работала
+          console.error(error.message);
           const safeHtml = html
             .replace(/\{\{[\s\S]*?\}\}/g, '') // Удаляем все {{...}}
             .replace(/\{\{#[\s\S]*?\}\}/g, '') // Удаляем все {{#...}}
             .replace(/\{\{\/[\s\S]*?\}\}/g, '') // Удаляем все {{/...}}
             .replace(/\{\{>[\s\S]*?\}\}/g, ''); // Удаляем все {{>...}}
-          
           return safeHtml;
         }
       }
@@ -158,7 +122,6 @@ export default defineConfig({
 
   server: {
     port: 3000,
-    open: true,
   },
 
   css: {
@@ -170,8 +133,6 @@ export default defineConfig({
       partialsDir: "src/components",
       context: {
         title: "MyMate",
-        siteName: "MyMate",
-        currentYear: new Date().getFullYear(),
       },
     }),
   ],

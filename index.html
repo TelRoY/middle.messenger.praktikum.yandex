@@ -1,11 +1,4 @@
-<!DOCTYPE html>
-<html lang="ru">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{{title}}</title>
-  </head>
+{{> head/Head}}
 
   <body>
     <div class="container">
@@ -28,13 +21,7 @@
         </ul>
       </nav>
 
-      <div class="footer">
-        <p>
-          Нажимая "Авторизация" или "Регистрация", вы соглашаетесь с
-          <a href="#">Условиями использования</a> и
-          <a href="#">Политикой конфиденциальности</a>
-        </p>
-      </div>
+      {{>footer/Footer}}
     </div>
 
     <script type="module" src="src/main.js"></script>
