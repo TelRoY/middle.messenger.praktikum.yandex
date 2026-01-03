@@ -99,3 +99,6 @@ npm run start
   Стилизованная страница 500 ошибки
 
   Кнопка возврата на главную
+
+### Домен из Netlify
+https://app.netlify.com/projects/voluble-squirrel-4abcc3
