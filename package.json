@@ -11,7 +11,7 @@
         "dev": "vite",
         "build": "vite build",
         "preview": "vite preview --port 3000 --host",
-        "start": "vite build && preview",
+        "start": "npm run build && npm run dev",
         "lint": "eslint src",
         "format": "prettier --write src"
     },
