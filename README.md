@@ -102,3 +102,4 @@ npm run start
 
 ### Домен из Netlify
 https://app.netlify.com/projects/voluble-squirrel-4abcc3
+https://voluble-squirrel-4abcc3.netlify.app/
