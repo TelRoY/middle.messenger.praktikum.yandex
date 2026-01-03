@@ -11,7 +11,7 @@
         "dev": "vite",
         "build": "vite build",
         "preview": "vite preview",
-        "start": "vite build && vite",
+        "start": "npm run build && node ./server.js",
         "lint": "eslint src",
         "format": "prettier --write src"
     },
