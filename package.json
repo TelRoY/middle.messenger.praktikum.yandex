@@ -8,11 +8,11 @@
         "npm": ">=8.0.0"
     },
     "scripts": {
-        "dev": "vite",
+        "dev": "vite --open",
         "build": "vite build",
-        "preview": "vite preview",
+        "preview": "vite preview --open",
         "prestart": "npm install",
-        "start": "vite && vite build",
+        "start": "npm run build && node ./server.js",
         "lint": "eslint src",
         "format": "prettier --write src"
     },

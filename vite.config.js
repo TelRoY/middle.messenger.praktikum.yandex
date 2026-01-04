@@ -90,14 +90,14 @@ const createHandlebarsPlugin = (options = {}) => {
         } catch (error) {
           console.error(error.message);
           const safeHtml = html
-            .replace(/\{\{[\s\S]*?\}\}/g, '') // Удаляем все {{...}}
-            .replace(/\{\{#[\s\S]*?\}\}/g, '') // Удаляем все {{#...}}
-            .replace(/\{\{\/[\s\S]*?\}\}/g, '') // Удаляем все {{/...}}
-            .replace(/\{\{>[\s\S]*?\}\}/g, ''); // Удаляем все {{>...}}
+            .replace(/\{\{[\s\S]*?\}\}/g, "") // Удаляем все {{...}}
+            .replace(/\{\{#[\s\S]*?\}\}/g, "") // Удаляем все {{#...}}
+            .replace(/\{\{\/[\s\S]*?\}\}/g, "") // Удаляем все {{/...}}
+            .replace(/\{\{>[\s\S]*?\}\}/g, ""); // Удаляем все {{>...}}
           return safeHtml;
         }
-      }
-    }
+      },
+    },
   };
 };
 
@@ -122,8 +122,15 @@ export default defineConfig({
 
   server: {
     port: 3000,
+    open: true,
+    host: "localhost",
   },
 
+  preview: {
+    port: 3000,
+    open: true   // ← И ЭТУ ДЛЯ PREVIEW
+  },
+  
   css: {
     postcss: "postcss.config.js",
   },
