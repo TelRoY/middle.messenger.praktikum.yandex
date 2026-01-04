@@ -72,7 +72,6 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, () => {
   const url = `http://localhost:${PORT}`;
-  console.log(`🌐 Ссылка: ${url}`);
 
   if (process.env.NODE_ENV !== "production") {
     openBrowser(url);
