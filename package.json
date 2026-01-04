@@ -8,11 +8,11 @@
         "npm": ">=8.0.0"
     },
     "scripts": {
-        "dev": "vite --open",
+        "dev": "vite --port 3000",
         "build": "vite build",
-        "preview": "vite preview --open",
+        "preview": "vite preview --port 3000 --open",
         "prestart": "npm install",
-        "start": "vite build && vite --open",
+        "start": "vite build && vite preview --port 3000",
         "lint": "eslint src",
         "format": "prettier --write src"
     },
