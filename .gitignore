@@ -13,6 +13,7 @@ dist-ssr
 dist
 # Editor directories and files
 package-lock.json
+server.js
 .vscode/*
 !.vscode/extensions.json
 .idea
