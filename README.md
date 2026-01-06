@@ -1,18 +1,6 @@
 # MyMate - Modern Messenger Project
 MyMate - это современный, быстрый и безопасный мессенджер с интуитивно понятным интерфейсом. Проект разработан с использованием современных веб-технологий и компонентного подхода.
 
-## Проблемы
-
-Не проходит автотест 
-   ``` sh 
-   Run npm run start and wait for port 30007/9 ✗ Run npm run start and wait for port 3000
-   (from function `start_node' in file /tmp/tests-middle-frontend/tests/utils/utils.bash, line 22,
-    in test file /tmp/tests-middle-frontend/tests/node_build.bats, line 71)
-     `start_node' failed with status 124
-   sh: 1: vite: Permission denied
-  ```
-Со слов наставника тест не проходит из-за прав на стороне гита, решено отправить на проверку задание так
-
 ## Технологии
 Vite - быстрый сборщик проектов
 
