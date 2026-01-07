@@ -1,0 +1,80 @@
+{{> head/Head}}
+
+  <body>
+    <main class="container">
+    
+        <div class="header">
+            <img src="#" alt="Аватар" class="">
+            <div class="avatar-placeholder">
+                <input type="file" id="avatar" name="avatar" accept="image/*">
+            </div>
+            <div class="profile-info">
+                <h1 class="profile-name" id="profileName">Иван Иванов</h1>
+                {{> buttons/Button 
+                    text="Редактировать профиль" 
+                    variant="" 
+                    href=""
+                    }}
+            </div>
+        </div>
+
+        <div class="main">
+            {{> forms/Form
+                id="first_name"
+                label="Имя"
+                placeholder="Иван"
+                }}
+                
+                {{> forms/Form
+                id="second_name"
+                label="Фамилия"
+                placeholder="Иванов"
+                }}
+                
+                {{> forms/Form
+                id="display_name"
+                label="Никнэйм"
+                placeholder="ivan95"
+                }}
+                
+                {{> forms/Form
+                id="login"
+                label="Логин"
+                placeholder="ivanivanov"
+                }}
+                
+                {{> forms/Form
+                id="email"
+                label="Электронная почта"
+                placeholder="ivanivanov@yandex.ru"
+                }}
+                
+                {{> forms/Form
+                id="phone"
+                label="Телефон"
+                placeholder="+7 (800) 555-35-35"
+                }}
+
+                {{> forms/Form
+                id="oldPassword"
+                label="Старый пароль"
+                }}
+
+                {{> forms/Form
+                id="newPassword"
+                label="Новый пароль"
+                }}
+        </div>
+
+        <div class="footer">
+            {{> buttons/Button 
+                text="На главную" 
+                variant="home" 
+                href="../../../index.html"
+                }}
+        </div>
+    </main>
+    
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

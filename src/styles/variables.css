@@ -1,0 +1,36 @@
+:root {
+  /* Font-sizes */
+  --font-size-xs: 0.5rem;
+  --font-size-sm: 1rem;
+  --font-size-md: 1.5rem;
+  --font-size-lg: 3rem;
+  /* Colors */
+  --color-primary: #6a11cb;
+  --color-secondary: #2575fc;
+  --color-text: rgb(59, 51, 51);
+  --color-text-light: #636e72d5;
+  --color-white: #ffffff;
+  --color-shadow: rgba(250, 8, 8, 0.5);
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(140deg, #a99fe2 40%, #2575fc 50%);
+  --gradient-button: linear-gradient(140deg, #a99fe2 20%, #2575fc 50%);
+
+  /* Background */
+  --background-container: rgba(255, 255, 255, 0.788);
+
+  /* Spacing */
+  --spacing-xs: 10px;
+  --spacing-sm: 15px;
+  --spacing-md: 25px;
+  --spacing-lg: 40px;
+  --spacing-xl: 50px;
+
+  /* Border radius */
+  --radius-sm: 10px;
+  --radius-md: 15px;
+  --radius-lg: 40px;
+
+  /* Shadows */
+  --shadow-main: 10px 25px 50px var(--color-shadow);
+}

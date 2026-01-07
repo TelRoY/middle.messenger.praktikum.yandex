@@ -1,0 +1,32 @@
+{{! 
+  Текстовое поле формы
+  
+  Параметры:
+  - id: идентификатор поля
+  - name: имя поля
+  - label: текст метки
+  - type: тип поля (text, email, password, tel)
+  - placeholder: placeholder текст
+  - value: значение по умолчанию
+  - required: обязательно ли поле
+  - className: дополнительные CSS классы
+
+        <form action="" class="login">
+          <label for="first_name">Имя</label>
+          <input type="text" id="first_name" name="first_name" placeholder="" />
+        </form>
+
+
+}}
+
+<form action="" class="login">
+  <label for="{{id}}">{{label}}</label>
+  <input
+    type="text"
+    id="{{id}}"
+    name="{{id}}"
+    {{#if placeholder}}placeholder="{{placeholder}}"{{/if}}
+    {{#if value}}value="{{value}}"{{/if}}
+    {{#if required}}required{{/if}}
+  />
+</form>
