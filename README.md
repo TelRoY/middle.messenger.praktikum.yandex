@@ -86,7 +86,7 @@ npm run start
 
   Область сообщений (правая колонка)
 
-4. Страница профиля - /src/pages/profile/profile.html
+5. Страница профиля - /src/pages/profile/profile.html
 
   Данные профиля: аватар, имя, фамилия, логин, email, телефон
   
