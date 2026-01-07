@@ -14,8 +14,9 @@
     <main class="container">
     
         <div class="header">
+            <img src="#" alt="Аватар" class="">
             <div class="avatar-placeholder">
-                <img src="#" alt="Аватар" class="avatar-preview">
+                <input type="file" id="avatar" name="avatar" accept="image/*">
             </div>
             <div class="profile-info">
                 <h1 class="profile-name" id="profileName">Иван Иванов</h1>
@@ -53,6 +54,18 @@
                 </form>                
                 
                 <form action="" class="login">
+                  <label for="display_name">Никнэйм</label>
+                  <input
+                    type="text"
+                    id="display_name"
+                    name="display_name"
+                    placeholder="ivan95"
+                    
+                    
+                  />
+                </form>                
+                
+                <form action="" class="login">
                   <label for="login">Логин</label>
                   <input
                     type="text"
@@ -83,6 +96,30 @@
                     id="phone"
                     name="phone"
                     placeholder="+7 (800) 555-35-35"
+                    
+                    
+                  />
+                </form>
+                
+                <form action="" class="login">
+                  <label for="oldPassword">Старый пароль</label>
+                  <input
+                    type="text"
+                    id="oldPassword"
+                    name="oldPassword"
+                    
+                    
+                    
+                  />
+                </form>
+                
+                <form action="" class="login">
+                  <label for="newPassword">Новый пароль</label>
+                  <input
+                    type="text"
+                    id="newPassword"
+                    name="newPassword"
+                    
                     
                     
                   />
