@@ -1,11 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    DEPLOY TEST
-</body>
+{{> head/Head}}
+
+  <body>
+    
+    <main class="container">
+      
+      <div class="header">
+        <h1>{{title}}</h1>
+        <p>
+          Добро пожаловать в новейший, современный, безопасный и быстрый
+          мессенджер!
+        </p>
+      </div>
+
+      <nav class="main">
+        <ul class="feature-list">
+          {{#each menuItems}}
+          <li class="feature-item">
+            <a href="{{url}}">{{title}}</a>
+          </li>
+          {{/each}}
+        </ul>
+      </nav>
+
+      {{>footer/Footer}}
+    </main>
+
+    <script type="module" src="src/main.js"></script>
+  </body>
 </html>
