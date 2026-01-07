@@ -1,0 +1,63 @@
+{{> head/Head}}
+
+  <body>
+    <main class="container">
+    
+        <div class="header">
+            <div class="avatar-placeholder">
+                <img src="#" alt="Аватар" class="avatar-preview">
+            </div>
+            <div class="profile-info">
+                <h1 class="profile-name" id="profileName">Иван Иванов</h1>
+                {{> buttons/Button 
+                    text="Редактировать профиль" 
+                    variant="" 
+                    href=""
+                    }}
+            </div>
+        </div>
+
+        <div class="main">
+            {{> forms/Form
+                id="first_name"
+                label="Имя"
+                placeholder="Иван"
+                }}
+                
+                {{> forms/Form
+                id="second_name"
+                label="Фамилия"
+                placeholder="Иванов"
+                }}
+                
+                {{> forms/Form
+                id="login"
+                label="Логин"
+                placeholder="ivanivanov"
+                }}
+                
+                {{> forms/Form
+                id="email"
+                label="Электронная почта"
+                placeholder="ivanivanov@yandex.ru"
+                }}
+                
+                {{> forms/Form
+                id="phone"
+                label="Телефон"
+                placeholder="+7 (800) 555-35-35"
+                }}
+        </div>
+
+        <div class="footer">
+            {{> buttons/Button 
+                text="На главную" 
+                variant="home" 
+                href="../../../index.html"
+                }}
+        </div>
+    </main>
+    
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

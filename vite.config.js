@@ -74,6 +74,7 @@ const createHandlebarsPlugin = (options = {}) => {
               { title: "Авторизация", url: "/src/pages/authorization/authorization.html" },
               { title: "Регистрация", url: "/src/pages/registration/registration.html" },
               { title: "Главная", url: "/src/pages/home/home.html" },
+              { title: "Профиль", url: "/src/pages/profile/profile.html" },
               { title: "404", url: "/src/pages/404/404.html" },
               { title: "500", url: "/src/pages/500/500.html" },
             ],
@@ -114,6 +115,7 @@ export default defineConfig({
         authorization: resolve(__dirname, "src/pages/authorization/authorization.html"),
         registration: resolve(__dirname, "src/pages/registration/registration.html"),
         home: resolve(__dirname, "src/pages/home/home.html"),
+        profile: resolve(__dirname, "src/pages/profile/profile.html"),
         error404: resolve(__dirname, "src/pages/404/404.html"),
         error500: resolve(__dirname, "src/pages/500/500.html"),
       },
@@ -128,9 +130,9 @@ export default defineConfig({
 
   preview: {
     port: 3000,
-    open: true   // ← И ЭТУ ДЛЯ PREVIEW
+    open: true, // ← И ЭТУ ДЛЯ PREVIEW
   },
-  
+
   css: {
     postcss: "postcss.config.js",
   },
