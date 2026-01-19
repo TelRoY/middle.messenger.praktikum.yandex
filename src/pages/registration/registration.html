@@ -1,0 +1,59 @@
+{{> head/Head}}
+
+  <body>
+    <main class="container">
+      <div class="header">
+        <h1>Регистрация</h1>
+      </div>
+
+      <div class="main">
+        {{> forms/Form
+        id="first_name"
+        label="Имя"
+        }}
+        
+        {{> forms/Form
+        id="second_name"
+        label="Фамилия"
+        }}
+        
+        {{> forms/Form
+        id="login"
+        label="Логин"
+        }}
+        
+        {{> forms/Form
+        id="email"
+        label="Электронная почта"
+        }}
+        
+        {{> forms/Form
+        id="password"
+        label="Пароль"
+        }}
+        
+        {{> forms/Form
+        id="phone"
+        label="Телефон"
+        }}
+      </div>
+
+      <div class="login-buttons">
+        <button
+          type="submit"
+          class="button button-registration"
+          onclick="location.href=''"
+        >
+          Регистрация
+        </button>
+          {{> buttons/Button 
+            text="На главную" 
+            variant="home" 
+            href="../../../index.html"
+          }}
+      </div>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

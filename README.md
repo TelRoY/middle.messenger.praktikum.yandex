@@ -86,6 +86,12 @@ npm run start
 
   Область сообщений (правая колонка)
 
+5. Страница профиля - /src/pages/profile/profile.html
+
+  Данные профиля: аватар, имя, фамилия, логин, email, телефон
+  
+  Кнопка возврата на главную
+
 ### Страницы ошибок
 
 5. 404 - Страница не найдена - /src/pages/404/404.html
@@ -101,4 +107,4 @@ npm run start
   Кнопка возврата на главную
 
 ### Домен из Netlify
-https://app.netlify.com/projects/voluble-squirrel-4abcc3
+[https://voluble-squirrel-4abcc3.netlify.app/](https://voluble-squirrel-4abcc3.netlify.app/)

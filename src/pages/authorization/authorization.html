@@ -1,0 +1,43 @@
+{{> head/Head}}
+
+  <body>
+    <main class="container">
+      <div class="header">
+        <h1>MyMate</h1>
+        <p>Войдите в свой аккаунт, чтобы продолжить</p>
+      </div>
+
+      <div class="main">
+
+        {{> forms/Form
+        id="login"
+        label="Логин"
+        placeholder="Введите логин или email"
+        }}
+        
+        {{> forms/Form
+        id="password"
+        label="Пароль"
+        placeholder="Введите пароль"
+        }}
+        
+        <div class="login-buttons">
+          {{> buttons/Button 
+            text="Авторизация" 
+            variant="authorization" 
+            href=""
+          }}
+          {{> buttons/Button 
+            text="Регистрация" 
+            variant="registration" 
+            href="../registration/registration.html"
+          }}
+        </div>
+      </div>
+
+      {{>footer/Footer}}
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
