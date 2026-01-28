@@ -18,10 +18,23 @@
       "strict": false,
       "noImplicitAny": true,
       "strictNullChecks": true,
+      "strictFunctionTypes": true,
+      "strictBindCallApply": true,
+      "strictPropertyInitialization": true,
+      "noImplicitThis": true,
+      "useUnknownInCatchVariables": true,
+      "alwaysStrict": true,
+      "exactOptionalPropertyTypes": true,
+      "noImplicitReturns": true,
       "noUnusedLocals": true,
       "noUnusedParameters": true,
       "sourceMap": true,
-      "noFallthroughCasesInSwitch": false,
+      "noFallthroughCasesInSwitch": true,
+      "noUncheckedIndexedAccess": true,
+      "noImplicitOverride": true,
+      "noPropertyAccessFromIndexSignature": true,
+      "allowUnusedLabels": false,
+      "allowUnreachableCode": false,
       "types": ["node"],
 
       /* Paths */
@@ -41,7 +54,7 @@
       "allowSyntheticDefaultImports": true,
     },
     "include": [
-      "src/**/*.ts",
+      "src/**/*",
       "src/**/*.js",
       "src/**/*.d.ts",
       "env.d.ts",
@@ -50,6 +63,8 @@
     "exclude": [
       "node_modules",
       "dist",
-      "vite.config.ts"
+      "vite.config.ts",
+      "**/*.test.ts",
+      "**/*.spec.ts"
     ],
   }

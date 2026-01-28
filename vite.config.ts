@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import { resolve } from "path";
 import { defineConfig, PluginOption } from "vite";
 import fs from "fs";
