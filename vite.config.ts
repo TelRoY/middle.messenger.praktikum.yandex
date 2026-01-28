@@ -1,25 +1,25 @@
 import { resolve } from "path";
-import { defineConfig } from "vite";
+import { defineConfig, PluginOption } from "vite";
 import fs from "fs";
 import path from "path";
 import Handlebars from "handlebars";
 
 // Функция для загрузки partials
-const loadPartials = (partialsDir) => {
-  const partials = {};
+const loadPartials = (partialsDir: string) => {
+  const partials: Record<string, string> = {};
 
-  const registerPartial = (name, content) => {
+  const registerPartial = (name: string, content: string) => {
     try {
       // Проверяем синтаксис перед регистрацией
       Handlebars.compile(content);
       partials[name] = content;
       Handlebars.registerPartial(name, content);
-    } catch (error) {
-      console.error(`✗ Ошибка в partial ${name}:`, error.message);
+    } catch (error: any) {
+      console.error(`✗ Ошибка в partial ${name}:`, (error as Error).message);
     }
   };
 
-  const readPartialsRecursive = (dir, prefix = "") => {
+  const readPartialsRecursive = (dir: string, prefix = "") => {
     const items = fs.readdirSync(dir, { withFileTypes: true });
 
     items.forEach((item) => {
@@ -40,8 +40,19 @@ const loadPartials = (partialsDir) => {
   return partials;
 };
 
+// Интерфейс для контекста Handlebars
+interface PageContext {
+  [key: string]: any;
+}
+
+// Интерфейс для опций плагина
+interface HandlebarsPluginOptions {
+  partialsDir?: string;
+  context?: PageContext;
+}
+
 // Кастомный плагин Handlebars
-const createHandlebarsPlugin = (options = {}) => {
+const createHandlebarsPlugin = (options: HandlebarsPluginOptions = {}) => {
   const partialsDir = options.partialsDir || "src/components";
   const context = options.context || {};
 
@@ -62,7 +73,7 @@ const createHandlebarsPlugin = (options = {}) => {
 
     transformIndexHtml: {
       order: "pre",
-      handler(html, ctx) {
+      handler(html: string, ctx: { filename?: string }) {
         const filename = ctx.filename || "unknown";
 
         try {
@@ -88,8 +99,8 @@ const createHandlebarsPlugin = (options = {}) => {
 
           const result = template(pageContext);
           return result;
-        } catch (error) {
-          console.error(error.message);
+        } catch (error: any) {
+          console.error((error as Error).message);
           const safeHtml = html
             .replace(/\{\{[\s\S]*?\}\}/g, "") // Удаляем все {{...}}
             .replace(/\{\{#[\s\S]*?\}\}/g, "") // Удаляем все {{#...}}
@@ -130,7 +141,7 @@ export default defineConfig({
 
   preview: {
     port: 3000,
-    open: true, // ← И ЭТУ ДЛЯ PREVIEW
+    open: true,
   },
 
   css: {
@@ -143,6 +154,6 @@ export default defineConfig({
       context: {
         title: "MyMate",
       },
-    }),
+    }) as PluginOption,
   ],
 });

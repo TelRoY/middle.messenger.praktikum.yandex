@@ -4,3 +4,5 @@ import "../style.css";
 import "./components/buttons/button.css";
 import "./components/forms/form.css";
 import "./pages/home/home.css";
+
+console.log("App started with TypeScript!");
