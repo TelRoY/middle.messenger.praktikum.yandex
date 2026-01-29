@@ -15,7 +15,7 @@
       "noEmit": true,
   
       /* Linting */
-      "strict": false,
+      "strict": true,
       "noImplicitAny": true,
       "strictNullChecks": true,
       "strictFunctionTypes": true,

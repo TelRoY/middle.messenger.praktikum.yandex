@@ -53,7 +53,7 @@ interface HandlebarsPluginOptions {
 }
 
 // Кастомный плагин Handlebars
-const createHandlebarsPlugin = (options: HandlebarsPluginOptions = {}) => {
+function createHandlebarsPlugin(options: HandlebarsPluginOptions = {}) {
   const partialsDir = options.partialsDir || "src/components";
   const context = options.context || {};
 
@@ -61,12 +61,50 @@ const createHandlebarsPlugin = (options: HandlebarsPluginOptions = {}) => {
   loadPartials(resolve(partialsDir));
 
   // Регистрируем хелперы
-  Handlebars.registerHelper("json", function (context) {
+  Handlebars.registerHelper("json", function (context: any) {
     return JSON.stringify(context);
   });
 
-  Handlebars.registerHelper("ifEquals", function (arg1, arg2, options) {
+  Handlebars.registerHelper("ifEquals", function (this: any, arg1: any, arg2: any, options: any) {
     return arg1 === arg2 ? options.fn(this) : options.inverse(this);
+  });
+
+  // Регистрируем хелпер для получения первой буквы строки
+  Handlebars.registerHelper('firstLetter', function(this: any, str: string) {
+    if (str && typeof str === 'string' && str.length > 0) {
+      return str.charAt(0).toUpperCase();
+    }
+    return '?';
+  });
+
+  // Регистрируем хелпер для создания массива
+  Handlebars.registerHelper('array', function(this: any, ...items: any[]) {
+    return items.slice(0, -1);
+  });
+
+  // Регистрируем хелпер для безопасного сравнения
+  Handlebars.registerHelper('eq', function(this: any, a: any, b: any, options: any) {
+    return a === b ? options.fn(this) : options.inverse(this);
+  });
+
+  // Регистрируем хелпер для проверки наличия значения
+  Handlebars.registerHelper('hasValue', function(this: any, value: any, options: any) {
+    return value ? options.fn(this) : options.inverse(this);
+  });
+
+   // Регистрируем хелпер для форматирования времени
+  Handlebars.registerHelper('formatTime', function(timestamp: string) {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  });
+
+  // Регистрируем хелпер для получения подстроки
+  Handlebars.registerHelper('substring', function(this: any, str: string, start: number, end: number) {
+    if (str && typeof str === 'string' && str.length > 0) {
+      return str.substring(start, end).toUpperCase();
+    }
+    return '?';
   });
 
   return {
@@ -74,7 +112,7 @@ const createHandlebarsPlugin = (options: HandlebarsPluginOptions = {}) => {
 
     transformIndexHtml: {
       order: "pre",
-      handler(html: string, ctx: { filename?: string }) {
+      handler(html: string, ctx: { filename?: string; }) {
         const filename = ctx.filename || "unknown";
 
         try {
@@ -112,7 +150,7 @@ const createHandlebarsPlugin = (options: HandlebarsPluginOptions = {}) => {
       },
     },
   };
-};
+}
 
 export default defineConfig({
   root: __dirname,
