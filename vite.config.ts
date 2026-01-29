@@ -70,42 +70,42 @@ function createHandlebarsPlugin(options: HandlebarsPluginOptions = {}) {
   });
 
   // Регистрируем хелпер для получения первой буквы строки
-  Handlebars.registerHelper('firstLetter', function(this: any, str: string) {
-    if (str && typeof str === 'string' && str.length > 0) {
-      return str.charAt(0).toUpperCase();
-    }
-    return '?';
-  });
+  // Handlebars.registerHelper('firstLetter', function(this: any, str: string) {
+  //   if (str && typeof str === 'string' && str.length > 0) {
+  //     return str.charAt(0).toUpperCase();
+  //   }
+  //   return '?';
+  // });
 
   // Регистрируем хелпер для создания массива
-  Handlebars.registerHelper('array', function(this: any, ...items: any[]) {
-    return items.slice(0, -1);
-  });
+  // Handlebars.registerHelper('array', function(this: any, ...items: any[]) {
+  //   return items.slice(0, -1);
+  // });
 
   // Регистрируем хелпер для безопасного сравнения
-  Handlebars.registerHelper('eq', function(this: any, a: any, b: any, options: any) {
-    return a === b ? options.fn(this) : options.inverse(this);
-  });
+  // Handlebars.registerHelper('eq', function(this: any, a: any, b: any, options: any) {
+  //   return a === b ? options.fn(this) : options.inverse(this);
+  // });
 
   // Регистрируем хелпер для проверки наличия значения
-  Handlebars.registerHelper('hasValue', function(this: any, value: any, options: any) {
-    return value ? options.fn(this) : options.inverse(this);
-  });
+  // Handlebars.registerHelper('hasValue', function(this: any, value: any, options: any) {
+  //   return value ? options.fn(this) : options.inverse(this);
+  // });
 
    // Регистрируем хелпер для форматирования времени
-  Handlebars.registerHelper('formatTime', function(timestamp: string) {
-    if (!timestamp) return '';
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  });
+  // Handlebars.registerHelper('formatTime', function(timestamp: string) {
+  //   if (!timestamp) return '';
+  //   const date = new Date(timestamp);
+  //   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  // });
 
   // Регистрируем хелпер для получения подстроки
-  Handlebars.registerHelper('substring', function(this: any, str: string, start: number, end: number) {
-    if (str && typeof str === 'string' && str.length > 0) {
-      return str.substring(start, end).toUpperCase();
-    }
-    return '?';
-  });
+  // Handlebars.registerHelper('substring', function(this: any, str: string, start: number, end: number) {
+  //   if (str && typeof str === 'string' && str.length > 0) {
+  //     return str.substring(start, end).toUpperCase();
+  //   }
+  //   return '?';
+  // });
 
   return {
     name: "handlebars",
