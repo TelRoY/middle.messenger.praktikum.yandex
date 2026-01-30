@@ -13,23 +13,25 @@ interface InputProps {
   };
 }
 
-export class Input extends Block<InputProps> {
+export class Input extends Block {
+
   constructor(props: InputProps) {
-    super({
+    super('');
+    this.props = {
       type: 'text',
       required: false,
       ...props
-    });
+    };
   }
 
   protected addEventListeners(): void {
     const input = this.getContent().querySelector('input');
-    if (input && this.props.events) {
-      if (this.props.events.input) {
-        input.addEventListener('input', this.props.events.input);
+    if (input && this.props['events']) {
+      if (this.props['events'].input) {
+        input.addEventListener('input', this.props['events'].input);
       }
-      if (this.props.events.blur) {
-        input.addEventListener('blur', this.props.events.blur);
+      if (this.props['events'].blur) {
+        input.addEventListener('blur', this.props['events'].blur);
       }
     }
   }
@@ -40,7 +42,9 @@ export class Input extends Block<InputProps> {
   }
 
   protected template(): string {
-    const { id, label, placeholder, value, type, required } = this.props;
+    // Приводим тип this.props к InputProps
+    const props = this.props as InputProps;
+    const { id, label, placeholder, value, type, required } = props;
     
     return `
       <div class="form-group">

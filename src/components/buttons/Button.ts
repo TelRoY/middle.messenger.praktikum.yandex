@@ -5,7 +5,7 @@ interface ButtonProps {
   onClick?: () => void;
 }
 
-export class Button extends Block<ButtonProps> {
+export class Button extends Block {
   constructor(props: ButtonProps) {
     super('button', {
       ...props,
@@ -15,8 +15,7 @@ export class Button extends Block<ButtonProps> {
     });
   }
 
-  protected render(): string {
-    return `<div>${this.props.text}</div>`;
+  protected override render(): string {
+    return `<div>${this.props['text']}</div>`;
   }
 }
-
