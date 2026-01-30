@@ -69,44 +69,6 @@ function createHandlebarsPlugin(options: HandlebarsPluginOptions = {}) {
     return arg1 === arg2 ? options.fn(this) : options.inverse(this);
   });
 
-  // Регистрируем хелпер для получения первой буквы строки
-  // Handlebars.registerHelper('firstLetter', function(this: any, str: string) {
-  //   if (str && typeof str === 'string' && str.length > 0) {
-  //     return str.charAt(0).toUpperCase();
-  //   }
-  //   return '?';
-  // });
-
-  // Регистрируем хелпер для создания массива
-  // Handlebars.registerHelper('array', function(this: any, ...items: any[]) {
-  //   return items.slice(0, -1);
-  // });
-
-  // Регистрируем хелпер для безопасного сравнения
-  // Handlebars.registerHelper('eq', function(this: any, a: any, b: any, options: any) {
-  //   return a === b ? options.fn(this) : options.inverse(this);
-  // });
-
-  // Регистрируем хелпер для проверки наличия значения
-  // Handlebars.registerHelper('hasValue', function(this: any, value: any, options: any) {
-  //   return value ? options.fn(this) : options.inverse(this);
-  // });
-
-   // Регистрируем хелпер для форматирования времени
-  // Handlebars.registerHelper('formatTime', function(timestamp: string) {
-  //   if (!timestamp) return '';
-  //   const date = new Date(timestamp);
-  //   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  // });
-
-  // Регистрируем хелпер для получения подстроки
-  // Handlebars.registerHelper('substring', function(this: any, str: string, start: number, end: number) {
-  //   if (str && typeof str === 'string' && str.length > 0) {
-  //     return str.substring(start, end).toUpperCase();
-  //   }
-  //   return '?';
-  // });
-
   return {
     name: "handlebars",
 
@@ -121,12 +83,12 @@ function createHandlebarsPlugin(options: HandlebarsPluginOptions = {}) {
             ...context,
             pageName: path.basename(filename, ".html"),
             menuItems: [
-              { title: "Авторизация", url: "/src/pages/authorization/authorization.html" },
-              { title: "Регистрация", url: "/src/pages/registration/registration.html" },
-              { title: "Главная", url: "/src/pages/home/home.html" },
-              { title: "Профиль", url: "/src/pages/profile/profile.html" },
-              { title: "404", url: "/src/pages/404/404.html" },
-              { title: "500", url: "/src/pages/500/500.html" },
+              { title: "Авторизация", url: "/authorization" },
+              { title: "Регистрация", url: "/registration" },
+              { title: "Главная", url: "/home.html" },
+              { title: "Профиль", url: "/profile" },
+              { title: "404", url: "/404.html" },
+              { title: "500", url: "/500.html" },
             ],
           };
 
@@ -162,10 +124,10 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, "index.html"),
-        authorization: resolve(__dirname, "src/pages/authorization/authorization.html"),
-        registration: resolve(__dirname, "src/pages/registration/registration.html"),
+        authorization: resolve(__dirname, "/authorization"),
+        registration: resolve(__dirname, "/registration"),
         home: resolve(__dirname, "src/pages/home/home.html"),
-        profile: resolve(__dirname, "src/pages/profile/profile.html"),
+        profile: resolve(__dirname, "/profile"),
         error404: resolve(__dirname, "src/pages/404/404.html"),
         error500: resolve(__dirname, "src/pages/500/500.html"),
       },
