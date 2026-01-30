@@ -1,5 +1,3 @@
-/* Добавьте в ваш основной CSS файл или создайте validation.css */
-
 /* Стили для валидации */
 .field-error {
   color: #ff4757;
@@ -51,7 +49,6 @@
   }
 }
 
-/* Улучшаем внешний вид полей в режиме только для чтения */
 .form-input--readonly {
   background-color: #f8f9fa;
   cursor: not-allowed;
