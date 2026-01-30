@@ -124,10 +124,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, "index.html"),
-        authorization: resolve(__dirname, "/authorization"),
-        registration: resolve(__dirname, "/registration"),
         home: resolve(__dirname, "src/pages/home/home.html"),
-        profile: resolve(__dirname, "/profile"),
         error404: resolve(__dirname, "src/pages/404/404.html"),
         error500: resolve(__dirname, "src/pages/500/500.html"),
       },

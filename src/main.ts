@@ -37,8 +37,7 @@ function clearStaticContent(): void {
   if (staticContent) {
     staticContent.remove();
   }
-  
-  // Также удаляем другие возможные статические элементы
+
   const staticScript = document.querySelector('script[src="src/main.ts"]');
   if (staticScript) {
     staticScript.remove();
@@ -97,7 +96,7 @@ function initApp(): void {
     app.appendChild(page.getContent());
     page.dispatchComponentDidMount();
     } else if (path === '/' || path === '/index.html') {
-      // Главная страница SPA
+      // Главная страница
       console.log('Loading Main page');
       app.innerHTML = `
         <main class="container">
@@ -179,7 +178,7 @@ async function loadStaticPage(path: string): Promise<void> {
 function initStaticPageEvents(): void {
   console.log('Initializing static page events');
   
-  // Обработка отправки сообщения (только на странице чата)
+  // Обработка отправки сообщения
   const messageForm = document.getElementById('message-form');
   if (messageForm) {
     messageForm.addEventListener('submit', (e: Event) => {
@@ -230,7 +229,7 @@ function initStaticPageEvents(): void {
   }
 }
 
-// Вспомогательные функции для чата (только для статических страниц)
+// Вспомогательные функции для чата
 function addMessageToChat(text: string, isMine: boolean = true): void {
   const messagesContainer = document.querySelector('.messages-wrapper');
   if (!messagesContainer) return;
@@ -302,14 +301,6 @@ function setupSPANavigation(): void {
         e.preventDefault(); // Всегда предотвращаем поведение по умолчанию
         window.history.pushState({}, '', url.pathname);
         initApp();
-        // Если это SPA ссылка (без .html или с data-spa)
-        // if (!url.pathname.includes('.html') || link.hasAttribute('data-spa')) {
-        //   window.history.pushState({}, '', url.pathname);
-        //   initApp();
-        // } else {
-        //   // Статические страницы - просто переходим
-        //   window.location.href = url.pathname;
-        // }
       }
     }
   });

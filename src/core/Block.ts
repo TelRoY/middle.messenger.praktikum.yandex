@@ -55,7 +55,6 @@ export class Block {
   }
 
   protected componentDidMount(): void {
-    // Может быть переопределен в дочерних классах
   }
 
   public dispatchComponentDidMount(): void {
