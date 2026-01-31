@@ -13,7 +13,6 @@ declare module '*.css' {
 // Для TypeScript в браузере
 interface ImportMetaEnv {
   readonly VITE_APP_TITLE: string;
-  // добавьте другие переменные окружения по мере необходимости
 }
 
 interface ImportMeta {

@@ -94,7 +94,7 @@ export abstract class Block {
     if (this._element) {
       this._removeEvents();
       this._element.innerHTML = block;
-      this._addEventListeners();
+      this._addEvents();
     }
   }
   
@@ -102,8 +102,11 @@ export abstract class Block {
     return '';
   }
 
-  private getContent() {
-    return this.element;
+  public getContent(): HTMLElement {
+    if (!this._element) {
+      throw new Error('Элемент не создан');
+    }
+    return this._element;
   }
 
   private _makePropsProxy(props: Props): Props {
@@ -143,7 +146,7 @@ export abstract class Block {
     }
   }
 
-  private _addEventListeners(): void {
+  private _addEvents(): void {
     const { events = {} } = this.props;
     Object.keys(events).forEach(eventName => {
       const handler = events[eventName];

@@ -25,7 +25,6 @@ function render(query: string, block: Block): HTMLElement {
   if (!root) {
     throw new Error(`Root not found: ${query}`);
   }
-  
   root.appendChild(block.getContent());
   block.dispatchComponentDidMount();
   return root as HTMLElement;
