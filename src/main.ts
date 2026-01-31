@@ -5,7 +5,6 @@ import "./styles/validation.css";
 import "./styles/css.d.ts";
 import "../style.css";
 import "./pages/home/home.css";
-import "./components/buttons/button.css";
 import "./components/forms/form.css";
 import "./components/chat/ChatItem.css";
 import "./components/chat/Message.css";
