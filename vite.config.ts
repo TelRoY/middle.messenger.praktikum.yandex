@@ -15,7 +15,7 @@ const loadPartials = (partialsDir: string) => {
       Handlebars.compile(content);
       partials[name] = content;
       Handlebars.registerPartial(name, content);
-    } catch (error: any) {
+    } catch (error) {
       console.error(`✗ Ошибка в partial ${name}:`, (error as Error).message);
     }
   };
@@ -43,7 +43,10 @@ const loadPartials = (partialsDir: string) => {
 
 // Интерфейс для контекста Handlebars
 interface PageContext {
-  [key: string]: any;
+  [key: string]: unknown;
+  title?: string;
+  pageName?: string;
+  menuItems?: Array<{ title: string; url: string }>;
 }
 
 // Интерфейс для опций плагина
@@ -61,11 +64,11 @@ function createHandlebarsPlugin(options: HandlebarsPluginOptions = {}) {
   loadPartials(resolve(partialsDir));
 
   // Регистрируем хелперы
-  Handlebars.registerHelper("json", function (context: any) {
+  Handlebars.registerHelper("json", function (context: unknown) {
     return JSON.stringify(context);
   });
 
-  Handlebars.registerHelper("ifEquals", function (this: any, arg1: any, arg2: any, options: any) {
+  Handlebars.registerHelper("ifEquals", function (this: unknown, arg1: unknown, arg2: unknown, options: Handlebars.HelperOptions) {
     return arg1 === arg2 ? options.fn(this) : options.inverse(this);
   });
 
@@ -100,7 +103,7 @@ function createHandlebarsPlugin(options: HandlebarsPluginOptions = {}) {
 
           const result = template(pageContext);
           return result;
-        } catch (error: any) {
+        } catch (error) {
           console.error((error as Error).message);
           const safeHtml = html
             .replace(/\{\{[\s\S]*?\}\}/g, "") // Удаляем все {{...}}
