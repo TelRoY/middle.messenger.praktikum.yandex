@@ -6,22 +6,26 @@ export enum HTTPMethod {
   PATCH = 'PATCH'
 }
 
+export type HTTPRequestData = Record<string, unknown> | string | FormData | null;
+
 export interface HTTPRequestOptions {
   method?: HTTPMethod;
-  headers?: Record<string, string>;
-  data?: any;
-  timeout?: number;
-  withCredentials?: boolean;
-  params?: Record<string, string | number | boolean>;
+  headers?: Record<string, string> | undefined;
+  data?: HTTPRequestData | undefined;
+  timeout?: number | undefined;
+  withCredentials?: boolean | undefined;
+  params?: Record<string, string | number | boolean> | undefined;
 }
 
-export interface HTTPResponse<T = any> {
+export interface HTTPResponse<T = unknown> {
   ok: boolean;
   status: number;
   statusText: string;
   data: T;
   headers: Record<string, string>;
 }
+
+export type AdditionalData = Record<string, string | number | boolean>;
 
 export class HTTPClient {
   private baseURL: string;
@@ -40,7 +44,7 @@ export class HTTPClient {
     this.defaultTimeout = options.timeout || 5000;
   }
 
-  request<T = any>(
+  async request<T = unknown>(
     url: string,
     options: HTTPRequestOptions = {}
   ): Promise<HTTPResponse<T>> {
@@ -88,7 +92,7 @@ export class HTTPClient {
           }
         });
 
-        let responseData: any;
+        let responseData: unknown;
         try {
           const contentType = xhr.getResponseHeader('content-type');
           
@@ -143,7 +147,7 @@ export class HTTPClient {
           xhr.send();
         }
       } catch (error) {
-        reject(error);
+        reject(error instanceof Error ? error : new Error(String(error)));
       }
     });
   }
@@ -159,7 +163,7 @@ export class HTTPClient {
       .join('&');
   }
 
-  get<T = any>(
+  get<T = unknown>(
     url: string,
     params?: Record<string, string | number | boolean>,
     options?: Omit<HTTPRequestOptions, 'method' | 'data' | 'params'>
@@ -176,57 +180,61 @@ export class HTTPClient {
     return this.request<T>(url, requestOptions);
   }
 
-  post<T = any>(
+  post<T = unknown>(
     url: string,
-    data?: any,
+    data?: HTTPRequestData,
     options?: Omit<HTTPRequestOptions, 'method' | 'data'>
   ): Promise<HTTPResponse<T>> {
-    return this.request<T>(url, {
+    const requestOptions: HTTPRequestOptions = {
       ...options,
       method: HTTPMethod.POST,
       data
-    });
+    };
+    return this.request<T>(url, requestOptions);
   }
 
-  put<T = any>(
+  put<T = unknown>(
     url: string,
-    data?: any,
+    data?: HTTPRequestData,
     options?: Omit<HTTPRequestOptions, 'method' | 'data'>
   ): Promise<HTTPResponse<T>> {
-    return this.request<T>(url, {
+    const requestOptions: HTTPRequestOptions = {
       ...options,
       method: HTTPMethod.PUT,
       data
-    });
+    };
+    return this.request<T>(url, requestOptions);
   }
 
-  delete<T = any>(
+  delete<T = unknown>(
     url: string,
     options?: Omit<HTTPRequestOptions, 'method' | 'data'>
   ): Promise<HTTPResponse<T>> {
-    return this.request<T>(url, {
+    const requestOptions: HTTPRequestOptions = {
       ...options,
       method: HTTPMethod.DELETE
-    });
+    };
+    return this.request<T>(url, requestOptions)
   }
 
-  patch<T = any>(
+  patch<T = unknown>(
     url: string,
-    data?: any,
+    data?: HTTPRequestData,
     options?: Omit<HTTPRequestOptions, 'method' | 'data'>
   ): Promise<HTTPResponse<T>> {
-    return this.request<T>(url, {
+    const requestOptions: HTTPRequestOptions = {
       ...options,
       method: HTTPMethod.PATCH,
       data
-    });
+    };
+    return this.request<T>(url, requestOptions);
   }
 
-  uploadFile<T = any>(
+  uploadFile<T = unknown>(
     url: string,
     file: File,
     fieldName: string = 'file',
-    additionalData: Record<string, any> = {}
+    additionalData: AdditionalData  = {}
   ): Promise<HTTPResponse<T>> {
     const formData = new FormData();
     formData.append(fieldName, file);

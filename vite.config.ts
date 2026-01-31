@@ -104,7 +104,7 @@ function createHandlebarsPlugin(options: HandlebarsPluginOptions = {}) {
           const result = template(pageContext);
           return result;
         } catch (error) {
-          console.error((error as Error).message);
+          console.error(error instanceof Error ? error.message : String(error));
           const safeHtml = html
             .replace(/\{\{[\s\S]*?\}\}/g, "") // Удаляем все {{...}}
             .replace(/\{\{#[\s\S]*?\}\}/g, "") // Удаляем все {{#...}}
