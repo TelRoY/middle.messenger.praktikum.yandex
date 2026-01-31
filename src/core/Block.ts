@@ -1,14 +1,16 @@
 import { EventBus } from './EventBus';
 
-export type Props = Record<string, any>;
+export type Props = Record<string, unknown> & {
+  events?: Record<string, EventListener>;
+};
 
-export class Block {
+export abstract class Block {
   static EVENTS = {
     INIT: 'init',
     FLOW_CDM: 'flow:component-did-mount',
     FLOW_CDU: 'flow:component-did-update',
     FLOW_RENDER: 'flow:render'
-  } as const;
+  };
 
   private _element: HTMLElement | null = null;
   private _meta: {
@@ -17,6 +19,7 @@ export class Block {
   };
   protected props: Props;
   private eventBus: () => EventBus;
+  private _events: Map<string, EventListener> = new Map();
 
   constructor(tagName: string = 'div', props: Props = {}) {
     const eventBus = new EventBus();
@@ -63,9 +66,10 @@ export class Block {
 
   private _componentDidUpdate(oldProps: Props, newProps: Props): void {
     const response = this.componentDidUpdate(oldProps, newProps);
-    if (response) {
-      this.eventBus().emit(Block.EVENTS.FLOW_RENDER);
+    if (!response) {
+      return
     }
+    this._render();
   }
 
   protected componentDidUpdate(oldProps: Props, newProps: Props): boolean {
@@ -88,30 +92,18 @@ export class Block {
     const block = this.render();
     
     if (this._element) {
+      this._removeEvents();
       this._element.innerHTML = block;
       this._addEventListeners();
     }
   }
-
-  private _addEventListeners(): void {
-    const { events = {} } = this.props;
-    
-    Object.keys(events).forEach(eventName => {
-      if (this._element) {
-        this._element.addEventListener(eventName, events[eventName]);
-      }
-    });
-  }
-
+  
   protected render(): string {
     return '';
   }
 
-  public getContent(): HTMLElement {
-    if (!this._element) {
-      throw new Error('Элемент не создан');
-    }
-    return this._element;
+  private getContent() {
+    return this.element;
   }
 
   private _makePropsProxy(props: Props): Props {
@@ -133,16 +125,40 @@ export class Block {
   }
 
   private _createDocumentElement(tagName: string): HTMLElement {
+    // Можно сделать метод, который через фрагменты в цикле создаёт сразу несколько блоков
     return document.createElement(tagName);
   }
 
   public show(): void {
     const content = this.getContent();
-    content.style.display = 'block';
-  }
+    if (content) {
+      content.style.display = 'block';
+    }
+  } 
 
   public hide(): void {
     const content = this.getContent();
+    if (content) {
     content.style.display = 'none';
+    }
+  }
+
+  private _addEventListeners(): void {
+    const { events = {} } = this.props;
+    Object.keys(events).forEach(eventName => {
+      const handler = events[eventName];
+      if (this._element && typeof handler === 'function') {
+        this._element.addEventListener(eventName, handler);
+        this._events.set(eventName, handler);
+      }
+    });
+  }
+
+  private _removeEvents(): void {
+    if (!this._element) return;
+    this._events.forEach((handler, eventName) => {
+      this._element?.removeEventListener(eventName, handler);
+    });
+    this._events.clear();
   }
 }
