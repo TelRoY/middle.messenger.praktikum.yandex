@@ -30,12 +30,12 @@ export interface RegistrationResponse {
 }
 
 export interface ProfileUpdateRequest {
-  first_name?: string;
-  second_name?: string;
-  display_name?: string;
-  login?: string;
-  email?: string;
-  phone?: string;
+  first_name?: string | undefined;
+  second_name?: string | undefined;
+  display_name?: string | undefined;
+  login?: string | undefined;
+  email?: string | undefined;
+  phone?: string | undefined;
 }
 
 export interface ProfileResponse {
@@ -51,14 +51,54 @@ export interface ProfileResponse {
 
 export interface ErrorResponse {
   reason: string;
-  errors?: Record<string, string>;
+  errors?: Record<string, string> | undefined;
+}
+
+// Вспомогательные функции для безопасного преобразования
+function loginRequestToRecord(data: LoginRequest): Record<string, string> {
+  return {
+    login: data.login,
+    password: data.password
+  };
+}
+
+function registrationRequestToRecord(data: RegistrationRequest): Record<string, string> {
+  return {
+    first_name: data.first_name,
+    second_name: data.second_name,
+    login: data.login,
+    email: data.email,
+    password: data.password,
+    phone: data.phone
+  };
+}
+
+function changePasswordToRecord(oldPassword: string, newPassword: string): Record<string, string> {
+  return {
+    oldPassword,
+    newPassword
+  };
+}
+
+function profileUpdateRequestToRecord(data: ProfileUpdateRequest): Record<string, string> {
+  const result: Record<string, string> = {};
+  
+  if (data.first_name !== undefined) result['first_name'] = data.first_name;
+  if (data.second_name !== undefined) result['second_name'] = data.second_name;
+  if (data.display_name !== undefined) result['display_name'] = data.display_name;
+  if (data.login !== undefined) result['login'] = data.login;
+  if (data.email !== undefined) result['email'] = data.email;
+  if (data.phone !== undefined) result['phone'] = data.phone;
+  
+  return result;
 }
 
 export class AuthAPI {
   static async login(data: LoginRequest): Promise<LoginResponse> {
+    const requestData = loginRequestToRecord(data);
     const response = await apiClient.post<LoginResponse | ErrorResponse>(
       '/auth/signin',
-      data
+      requestData
     );
     
     if (!response.ok) {
@@ -70,9 +110,10 @@ export class AuthAPI {
   }
 
   static async register(data: RegistrationRequest): Promise<RegistrationResponse> {
+    const requestData = registrationRequestToRecord(data);
     const response = await apiClient.post<RegistrationResponse | ErrorResponse>(
       '/auth/signup',
-      data
+      requestData
     );
     
     if (!response.ok) {
@@ -105,9 +146,11 @@ export class AuthAPI {
   }
 
   static async updateProfile(data: ProfileUpdateRequest): Promise<ProfileResponse> {
+    const requestData = profileUpdateRequestToRecord(data);
+    
     const response = await apiClient.put<ProfileResponse | ErrorResponse>(
       '/user/profile',
-      data
+      requestData
     );
     
     if (!response.ok) {
@@ -119,9 +162,11 @@ export class AuthAPI {
   }
 
   static async changePassword(oldPassword: string, newPassword: string): Promise<void> {
+    const requestData = changePasswordToRecord(oldPassword, newPassword);
+    
     const response = await apiClient.put<ErrorResponse>(
       '/user/password',
-      { oldPassword, newPassword }
+      requestData
     );
     
     if (!response.ok) {

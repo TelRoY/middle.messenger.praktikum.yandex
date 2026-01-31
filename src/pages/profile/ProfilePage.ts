@@ -2,9 +2,39 @@ import { Block } from '../../core/Block';
 import { Validator } from '../../utils/Validator';
 import { AuthAPI } from '../../api/AuthAPI';
 
+interface ProfileData {
+  first_name: string;
+  second_name: string;
+  display_name: string;
+  login: string;
+  email: string;
+  phone: string;
+  avatar: string;
+}
+
+interface FormData {
+  first_name: string;
+  second_name: string;
+  display_name: string;
+  login: string;
+  email: string;
+  phone: string;
+  oldPassword?: string | undefined;
+  newPassword?: string | undefined;
+}
+
+interface UpdateProfileData {
+  first_name: string;
+  second_name: string;
+  display_name: string;
+  login: string;
+  email: string;
+  phone: string;
+}
+
 export class ProfilePage extends Block {
   private isEditMode: boolean = false;
-  private originalData: Record<string, any>;
+  private originalData: ProfileData;
   private escapeHandler?: ((e: KeyboardEvent) => void) | undefined;
   private validationTimeouts: Record<string, NodeJS.Timeout> = {};
   private isLoading: boolean = false;
@@ -26,10 +56,14 @@ export class ProfilePage extends Block {
     });
 
     // Инициализируем данные профиля
-    this.originalData = this.loadProfileData();
+    this.originalData = this.getDefaultData();
+    this.loadProfileData().then(data => {
+      this.originalData = data;
+      this.forceUpdate();
+    });
   }
 
-  private async loadProfileData(): Promise<Record<string, any>> {
+  private async loadProfileData(): Promise<ProfileData> {
     try {
       // Загружаем данные из localStorage или с сервера
       const savedData = localStorage.getItem('user');
@@ -37,14 +71,25 @@ export class ProfilePage extends Block {
         return JSON.parse(savedData);
       }
       const userData = await AuthAPI.getCurrentUser();
-      localStorage.setItem('user', JSON.stringify(userData));
-      return userData;
+      const profileData: ProfileData = {
+        first_name: userData.first_name || '',
+        second_name: userData.second_name || '',
+        display_name: userData.display_name || '',
+        login: userData.login || '',
+        email: userData.email || '',
+        phone: userData.phone || '',
+        avatar: userData.avatar || ''
+      };
+      localStorage.setItem('user', JSON.stringify(profileData));
+      return profileData;
 
     } catch (error) {
       console.error('Error loading profile data:', error);
+      return this.getDefaultData();
     }
-    
-    // Данные по умолчанию
+  }
+
+  private getDefaultData(): ProfileData {
     return {
       first_name: 'Иван',
       second_name: 'Иванов',
@@ -56,19 +101,7 @@ export class ProfilePage extends Block {
     };
   }
 
-  private getDefaultData(): Record<string, any> {
-    return {
-      first_name: 'Иван',
-      second_name: 'Иванов',
-      display_name: 'ivan95',
-      login: 'ivanivanov',
-      email: 'ivanivanov@yandex.ru',
-      phone: '+7 (800) 555-35-35',
-      avatar: ''
-    };
-  }
-
-  private saveProfileData(data: Record<string, any>): void {
+  private saveProfileData(data: ProfileData): void {
     try {
       localStorage.setItem('userProfile', JSON.stringify(data));
       this.originalData = { ...data };
@@ -92,12 +125,16 @@ export class ProfilePage extends Block {
     
     if (form) {
       const formData = new FormData(form);
-      const data: Record<string, any> = {};
-      
-      // Собираем данные из формы
-      formData.forEach((value, key) => {
-        data[key] = value.toString().trim();
-      });
+      const data: FormData = {
+        first_name: (formData.get('first_name') as string || '').trim(),
+        second_name: (formData.get('second_name') as string || '').trim(),
+        display_name: (formData.get('display_name') as string || '').trim(),
+        login: (formData.get('login') as string || '').trim(),
+        email: (formData.get('email') as string || '').trim(),
+        phone: (formData.get('phone') as string || '').trim(),
+        oldPassword: (formData.get('oldPassword') as string || '').trim() || undefined,
+        newPassword: (formData.get('newPassword') as string || '').trim() || undefined
+      };
 
       const isChangingPassword = data['oldPassword'] || data['newPassword'];
 
@@ -109,31 +146,42 @@ export class ProfilePage extends Block {
         try {
           this.setLoading(true);
           
-          const updateData: any = {
-            first_name: data['first_name'],
-            second_name: data['second_name'],
-            display_name: data['display_name'],
-            login: data['login'],
-            email: data['email'],
-            phone: data['phone']
+          const updateData: UpdateProfileData  = {
+            first_name: data.first_name,
+            second_name: data.second_name,
+            display_name: data.display_name,
+            login: data.login,
+            email: data.email,
+            phone: data.phone
           };
 
           const updatedUser = await AuthAPI.updateProfile(updateData);
-          this.originalData = updatedUser;
-          this.showMessage('Профиль успешно обновлен', 'success');
-          if (isChangingPassword) {
+          const profileData: ProfileData = {
+            first_name: updatedUser.first_name || '',
+            second_name: updatedUser.second_name || '',
+            display_name: updatedUser.display_name || '',
+            login: updatedUser.login || '',
+            email: updatedUser.email || '',
+            phone: updatedUser.phone || '',
+            avatar: updatedUser.avatar || ''
+          };
+          this.originalData = profileData;
+
+          if (isChangingPassword && data.oldPassword && data.newPassword) {
             try {
-              await AuthAPI.changePassword(data['oldPassword'], data['newPassword']);
+              await AuthAPI.changePassword(data.oldPassword, data.newPassword);
+              this.showMessage('Профиль и пароль успешно обновлены', 'success');
             } catch (passwordError) {
               console.error('Password change failed:', passwordError);
               this.showMessage('Профиль обновлен, но не удалось сменить пароль', 'error');
             }
+          } else {
+            this.showMessage('Профиль успешно обновлен!', 'success');
           }
 
-          this.saveProfileData(data);
-          this.updateProfileDisplay(data);
+          this.saveProfileData(profileData);
+          this.updateProfileDisplay(profileData);
           this.toggleEditMode();
-          this.showMessage('Профиль успешно обновлен!', 'success');
         } catch (error) {
           console.error('Profile update error:', error);
           this.showMessage('Ошибка обновления профиля', 'error');
@@ -317,8 +365,17 @@ export class ProfilePage extends Block {
         this.setLoading(true);
         
         const updatedUser = await AuthAPI.updateAvatar(file);
+        const profileData: ProfileData = {
+          first_name: updatedUser.first_name || '',
+          second_name: updatedUser.second_name || '',
+          display_name: updatedUser.display_name || '',
+          login: updatedUser.login || '',
+          email: updatedUser.email || '',
+          phone: updatedUser.phone || '',
+          avatar: updatedUser.avatar || ''
+        };
         
-        this.saveProfileData(updatedUser);
+        this.saveProfileData(profileData);
         
         const avatarImg = this.getContent().querySelector('.avatar-img') as HTMLImageElement;
         const avatarPlaceholder = this.getContent().querySelector('.avatar-placeholder') as HTMLElement;
@@ -343,7 +400,7 @@ export class ProfilePage extends Block {
     }
   }
 
-  private updateProfileDisplay(data: Record<string, any>): void {
+  private updateProfileDisplay(data: ProfileData): void {
     const content = this.getContent();
     
     // Обновляем имя в заголовке
@@ -362,7 +419,7 @@ export class ProfilePage extends Block {
     }
     
     // Обновляем поля формы
-    const fields = ['first_name', 'second_name', 'display_name', 'login', 'email', 'phone'];
+    const fields: (keyof ProfileData)[] = ['first_name', 'second_name', 'display_name', 'login', 'email', 'phone'];
     fields.forEach(field => {
       const input = content.querySelector(`[name="${field}"]`) as HTMLInputElement;
       if (input) {
@@ -371,12 +428,12 @@ export class ProfilePage extends Block {
     });
     
     // Обновляем аватар
-    if (data['avatar']) {
+    if (data.avatar) {
       const avatarImg = content.querySelector('.avatar-img') as HTMLImageElement;
       const avatarPlaceholder = content.querySelector('.avatar-placeholder') as HTMLElement;
       
       if (avatarImg) {
-        avatarImg.src = data['avatar'];
+        avatarImg.src = data.avatar;
         avatarImg.style.display = 'block';
         if (avatarPlaceholder) {
           avatarPlaceholder.style.display = 'none';
