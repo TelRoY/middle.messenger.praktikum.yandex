@@ -19,7 +19,6 @@ export abstract class Block {
   };
   protected props: Props;
   private eventBus: () => EventBus;
-  private _events: Map<string, EventListener> = new Map();
 
   constructor(tagName: string = 'div', props: Props = {}) {
     const eventBus = new EventBus();
@@ -146,22 +145,22 @@ export abstract class Block {
     }
   }
 
-  private _addEvents(): void {
-    const { events = {} } = this.props;
+  private _addEvents() {
+    const {events = {} } = this.props;
     Object.keys(events).forEach(eventName => {
-      const handler = events[eventName];
-      if (this._element && typeof handler === 'function') {
-        this._element.addEventListener(eventName, handler);
-        this._events.set(eventName, handler);
+      if (events[eventName] !== undefined) {
+        this.element?.addEventListener(eventName, events[eventName]);
       }
     });
   }
 
-  private _removeEvents(): void {
-    if (!this._element) return;
-    this._events.forEach((handler, eventName) => {
-      this._element?.removeEventListener(eventName, handler);
+
+  private _removeEvents() {
+    const { events = {} } = this.props;
+    Object.keys(events).forEach(eventName => {
+      if (events[eventName] !== undefined) {
+        this._element?.removeEventListener(eventName, events[eventName]);
+      }
     });
-    this._events.clear();
   }
 }
