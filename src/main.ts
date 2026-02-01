@@ -11,7 +11,7 @@ import "./components/chat/ChatItem.css";
 import "./components/chat/Message.css";
 import "./components/chat/MessageInput.css";
 import "./components/ui/SearchInput.css";
-import "./components/ui/DropdownMenu.css";
+import "./components/ui/DropDownMenu.css";
 import { Block } from './core/Block';
 import { RegistrationPage } from './pages/registration/RegistrationPage';
 import { AuthorizationPage } from './pages/authorization/AuthorizationPage';
