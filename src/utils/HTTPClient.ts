@@ -25,142 +25,114 @@ export interface HTTPResponse<T = unknown> {
   headers: Record<string, string>;
 }
 
-export type AdditionalData = Record<string, string | number | boolean>;
-
 export class HTTPClient {
-  private baseURL: string;
-  private defaultHeaders: Record<string, string>;
-  private defaultTimeout: number;
-
-  constructor(baseURL: string = '', options: {
-    headers?: Record<string, string>;
-    timeout?: number;
-  } = {}) {
-    this.baseURL = baseURL;
-    this.defaultHeaders = {
-      'Content-Type': 'application/json',
-      ...options.headers
-    };
-    this.defaultTimeout = options.timeout || 5000;
+  constructor(baseURL: string = '') {
+    console.log('🚀 HTTPClient created with baseURL:', baseURL);
   }
 
   async request<T = unknown>(
     url: string,
     options: HTTPRequestOptions = {}
   ): Promise<HTTPResponse<T>> {
-    return new Promise((resolve, reject) => {
-      const {
-        method = HTTPMethod.GET,
-        headers = {},
-        data,
-        params = {},
-        timeout = this.defaultTimeout,
-        withCredentials = true
-      } = options;
-
-      let fullUrl = this.baseURL + url;
-      
-      if (method === HTTPMethod.GET && Object.keys(params).length > 0) {
-        const queryString = this.buildQueryString(params);
-        fullUrl += (fullUrl.includes('?') ? '&' : '?') + queryString;
-      }
-
-      const xhr = new XMLHttpRequest();
-      xhr.open(method, fullUrl, true);
-      xhr.timeout = timeout;
-
-      const requestHeaders = { ...this.defaultHeaders, ...headers };
-      Object.entries(requestHeaders).forEach(([key, value]) => {
-        if (value) {
-          xhr.setRequestHeader(key, value);
-        }
-      });
-
-      xhr.withCredentials = withCredentials;
-
-      xhr.onload = () => {
-        const responseHeaders: Record<string, string> = {};
-        const headersString = xhr.getAllResponseHeaders();
-        const headersArray = headersString.trim().split(/[\r\n]+/);
-        
-        headersArray.forEach(line => {
-          const parts = line.split(': ');
-          const header = parts.shift();
-          const value = parts.join(': ');
-          if (header) {
-            responseHeaders[header.toLowerCase()] = value;
-          }
-        });
-
-        let responseData: unknown;
-        try {
-          const contentType = xhr.getResponseHeader('content-type');
-          
-          if (contentType && contentType.includes('application/json')) {
-            responseData = JSON.parse(xhr.responseText);
-          } else if (contentType && (
-            contentType.includes('text/') || 
-            contentType.includes('application/xml')
-          )) {
-            responseData = xhr.responseText;
-          } else {
-            responseData = xhr.response;
-          }
-        } catch {
-          responseData = xhr.responseText;
-        }
-
-        const response: HTTPResponse<T> = {
-          ok: xhr.status >= 200 && xhr.status < 300,
-          status: xhr.status,
-          statusText: xhr.statusText,
-          data: responseData as T,
-          headers: responseHeaders
-        };
-
-        resolve(response);
-      };
-
-      xhr.onerror = () => {
-        reject(new Error('Network error occurred'));
-      };
-
-      xhr.ontimeout = () => {
-        reject(new Error(`Request timeout after ${timeout}ms`));
-      };
-
-      xhr.onabort = () => {
-        reject(new Error('Request was aborted'));
-      };
-
-      try {
-        if (data && method !== HTTPMethod.GET && method !== HTTPMethod.DELETE) {
-          if (data instanceof FormData) {
-            xhr.setRequestHeader('Content-Type', '');
-            xhr.send(data);
-          } else if (typeof data === 'string') {
-            xhr.send(data);
-          } else {
-            xhr.send(JSON.stringify(data));
-          }
-        } else {
-          xhr.send();
-        }
-      } catch (error) {
-        reject(error instanceof Error ? error : new Error(String(error)));
-      }
+    console.log('📨 HTTP Request:', {
+      method: options.method || 'GET',
+      url: url,
+      data: options.data,
+      headers: options.headers
     });
+    
+    // Имитация задержки сети
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Генерируем моковые данные в зависимости от URL
+    const mockData = this.generateMockData(url, options.data);
+    
+    const response: HTTPResponse<T> = {
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      data: mockData as T,
+      headers: { 'content-type': 'application/json' }
+    };
+    
+    console.log('✅ HTTP Response:', response);
+    return response;
   }
 
-  private buildQueryString(params: Record<string, string | number | boolean>): string {
-    return Object.entries(params)
-      .filter(([_, value]) => value !== undefined && value !== null)
-      .map(([key, value]) => {
-        const encodedKey = encodeURIComponent(key);
-        const encodedValue = encodeURIComponent(String(value));
-        return `${encodedKey}=${encodedValue}`;
-      })
-      .join('&');
+  private generateMockData(url: string, data?: HTTPRequestData): unknown {
+    console.log(`🔧 Generating mock data for: ${url}`);
+    
+    switch (url) {
+      case '/auth/signin':
+        console.log('🔐 Login attempt with data:', data);
+        const loginData = data as Record<string, string>;
+        return {
+          id: 1,
+          first_name: 'Иван',
+          second_name: 'Иванов',
+          display_name: 'ivan95',
+          login: loginData?.["login"] || 'testuser',
+          email: 'test@example.com',
+          phone: '+7 (800) 555-35-35',
+          avatar: ''
+        };
+
+      case '/auth/signup':
+        console.log('📝 Registration attempt with data:', data);
+        return { id: 1 };
+
+      case '/auth/user':
+        console.log('👤 Getting current user data');
+        return {
+          id: 1,
+          first_name: 'Иван',
+          second_name: 'Иванов',
+          display_name: 'ivan95',
+          login: 'ivanivanov',
+          email: 'ivanivanov@yandex.ru',
+          phone: '+7 (800) 555-35-35',
+          avatar: ''
+        };
+
+      case '/user/profile':
+        console.log('🔄 Updating profile with data:', data);
+        const profileData = data as Record<string, string>;
+        return {
+          id: 1,
+          first_name: profileData?.["first_name"] || 'Иван',
+          second_name: profileData?.["second_name"] || 'Иванов',
+          display_name: profileData?.["display_name"] || 'ivan95',
+          login: profileData?.["login"] || 'ivanivanov',
+          email: profileData?.["email"] || 'ivanivanov@yandex.ru',
+          phone: profileData?.["phone"] || '+7 (800) 555-35-35',
+          avatar: ''
+        };
+
+      case '/user/password':
+        console.log('🔒 Changing password:', data);
+        return {};
+
+      case '/user/profile/avatar':
+        console.log('🖼️ Updating avatar:', data instanceof FormData ? 'FormData received' : data);
+        return {
+          id: 1,
+          first_name: 'Иван',
+          second_name: 'Иванов',
+          display_name: 'ivan95',
+          login: 'ivanivanov',
+          email: 'ivanivanov@yandex.ru',
+          phone: '+7 (800) 555-35-35',
+          avatar: 'https://example.com/avatar.jpg'
+        };
+
+      case '/auth/logout':
+        console.log('👋 Logout');
+        return {};
+
+      default:
+        console.log(`❓ Unknown endpoint: ${url}`, data);
+        return {};
+    }
   }
 
   get<T = unknown>(
@@ -168,16 +140,11 @@ export class HTTPClient {
     params?: Record<string, string | number | boolean>,
     options?: Omit<HTTPRequestOptions, 'method' | 'data' | 'params'>
   ): Promise<HTTPResponse<T>> {
-    const requestOptions: HTTPRequestOptions = {
+    return this.request<T>(url, {
       ...options,
-      method: HTTPMethod.GET
-    };
-    
-    if (params) {
-      requestOptions.params = params;
-    }
-    
-    return this.request<T>(url, requestOptions);
+      method: HTTPMethod.GET,
+      params
+    });
   }
 
   post<T = unknown>(
@@ -185,12 +152,11 @@ export class HTTPClient {
     data?: HTTPRequestData,
     options?: Omit<HTTPRequestOptions, 'method' | 'data'>
   ): Promise<HTTPResponse<T>> {
-    const requestOptions: HTTPRequestOptions = {
+    return this.request<T>(url, {
       ...options,
       method: HTTPMethod.POST,
       data
-    };
-    return this.request<T>(url, requestOptions);
+    });
   }
 
   put<T = unknown>(
@@ -198,23 +164,21 @@ export class HTTPClient {
     data?: HTTPRequestData,
     options?: Omit<HTTPRequestOptions, 'method' | 'data'>
   ): Promise<HTTPResponse<T>> {
-    const requestOptions: HTTPRequestOptions = {
+    return this.request<T>(url, {
       ...options,
       method: HTTPMethod.PUT,
       data
-    };
-    return this.request<T>(url, requestOptions);
+    });
   }
 
   delete<T = unknown>(
     url: string,
     options?: Omit<HTTPRequestOptions, 'method' | 'data'>
   ): Promise<HTTPResponse<T>> {
-    const requestOptions: HTTPRequestOptions = {
+    return this.request<T>(url, {
       ...options,
       method: HTTPMethod.DELETE
-    };
-    return this.request<T>(url, requestOptions)
+    });
   }
 
   patch<T = unknown>(
@@ -222,52 +186,12 @@ export class HTTPClient {
     data?: HTTPRequestData,
     options?: Omit<HTTPRequestOptions, 'method' | 'data'>
   ): Promise<HTTPResponse<T>> {
-    const requestOptions: HTTPRequestOptions = {
+    return this.request<T>(url, {
       ...options,
       method: HTTPMethod.PATCH,
       data
-    };
-    return this.request<T>(url, requestOptions);
-  }
-
-  uploadFile<T = unknown>(
-    url: string,
-    file: File,
-    fieldName: string = 'file',
-    additionalData: AdditionalData  = {}
-  ): Promise<HTTPResponse<T>> {
-    const formData = new FormData();
-    formData.append(fieldName, file);
-    
-    Object.entries(additionalData).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        formData.append(key, String(value));
-      }
     });
-
-    return this.request<T>(url, {
-      method: HTTPMethod.POST,
-      headers: {},
-      data: formData
-    });
-  }
-
-  setHeader(key: string, value: string): void {
-    this.defaultHeaders[key] = value;
-  }
-
-  removeHeader(key: string): void {
-    delete this.defaultHeaders[key];
-  }
-
-  setBaseURL(url: string): void {
-    this.baseURL = url;
   }
 }
 
-export const apiClient = new HTTPClient('https://api.your-messenger.com', {
-  headers: {
-    'Accept': 'application/json',
-  },
-  timeout: 10000
-});
+export const apiClient = new HTTPClient('https://localhost:3000');

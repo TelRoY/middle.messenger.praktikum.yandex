@@ -12,6 +12,33 @@ export class AuthorizationPage extends Block {
         submit: (e: Event) => {
           e.preventDefault();
           this.onSubmit();
+        },
+        click: (e: Event) => {
+          const target = e.target as HTMLElement;
+          
+          // Кнопка "Регистрация"
+          if (target.id === 'registration-btn' || target.closest('#registration-btn')) {
+            window.history.pushState({}, '', '/registration');
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          }
+        },
+        blur: (e: Event) => {
+          const target = e.target as HTMLInputElement;
+          if (target.classList.contains('form-input')) {
+            this.validateOnBlur(target.name, target.value);
+          }
+        },
+        focus: (e: Event) => {
+          const target = e.target as HTMLInputElement;
+          if (target.classList.contains('form-input')) {
+            const formGroup = target.closest('.form-group');
+            const error = formGroup?.querySelector('.field-error');
+            if (error) {
+              error.remove();
+              target.classList.remove('has-error');
+            }
+            target.classList.remove('is-valid');
+          }
         }
       }
     });
@@ -285,35 +312,6 @@ export class AuthorizationPage extends Block {
 
   protected override componentDidMount(): void {
     const content = this.getContent();
-    
-    // Кнопка "Регистрация"
-    const registrationBtn = content.querySelector('#registration-btn');
-    if (registrationBtn) {
-      registrationBtn.addEventListener('click', () => {
-        window.history.pushState({}, '', '/registration');
-        window.dispatchEvent(new PopStateEvent('popstate'));
-      });
-    }
-    
-    // НАСТРОЙКА ВАЛИДАЦИИ НА BLUR
-    content.querySelectorAll('.form-input').forEach(input => {
-      input.addEventListener('blur', (e) => {
-        const target = e.target as HTMLInputElement;
-        this.validateOnBlur(target.name, target.value);
-      });
-      
-      input.addEventListener('focus', () => {
-        const formGroup = input.closest('.form-group');
-        const error = formGroup?.querySelector('.field-error');
-        if (error) {
-          error.remove();
-          input.classList.remove('has-error');
-        }
-        input.classList.remove('is-valid');
-      });
-    });
-    
-    // Автофокус на поле логина
     const loginInput = content.querySelector('#login') as HTMLInputElement;
     if (loginInput) {
       setTimeout(() => loginInput.focus(), 100);

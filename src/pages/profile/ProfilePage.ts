@@ -35,7 +35,6 @@ interface UpdateProfileData {
 export class ProfilePage extends Block {
   private isEditMode: boolean = false;
   private originalData: ProfileData;
-  private escapeHandler?: ((e: KeyboardEvent) => void) | undefined;
   private validationTimeouts: Record<string, NodeJS.Timeout> = {};
   private isLoading: boolean = false;
 
@@ -51,7 +50,49 @@ export class ProfilePage extends Block {
           if (target.id === 'avatar-input') {
             this.handleAvatarChange(target);
           }
+        },
+        click: (e: Event) => {
+          const target = e.target as HTMLElement;
+          
+          // Кнопка "На главную"
+          if (target.id === 'back-home' || target.closest('#back-home')) {
+            window.history.pushState({}, '', '/');
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          }
+
+          // Кнопка "Отмена" (в режиме редактирования)
+        if (target.id === 'cancel-edit' || target.closest('#cancel-edit')) {
+          this.toggleEditMode();
         }
+          
+          // Кнопка загрузки аватара
+          if (target.classList.contains('avatar-upload-btn') || target.closest('.avatar-upload-btn')) {
+            e.preventDefault();
+            const content = this.getContent();
+            const fileInput = content.querySelector('#avatar-input') as HTMLInputElement;
+            if (fileInput) {
+              fileInput.click();
+            }
+          }
+        },
+        blur: (e: Event) => {
+          const target = e.target as HTMLInputElement;
+          if (target.classList.contains('form-input') && this.isEditMode) {
+            this.validateOnBlur(target.name, target.value);
+          }
+        },
+        focus: (e: Event) => {
+          const target = e.target as HTMLInputElement;
+          if (target.classList.contains('form-input') && this.isEditMode) {
+            const formGroup = target.closest('.form-group');
+            const error = formGroup?.querySelector('.field-error');
+            if (error) {
+              error.remove();
+              target.classList.remove('has-error');
+            }
+            target.classList.remove('is-valid');
+          }
+        },
       }
     });
 
@@ -114,9 +155,36 @@ export class ProfilePage extends Block {
     if (this.isEditMode) {
       this.saveProfile();
     } else {
-      this.toggleEditMode();
+      this.toggleEditMode()
     }
   }
+
+  private toggleEditMode(): void {
+    this.isEditMode = !this.isEditMode;
+    this.forceUpdate();
+    if (this.isEditMode) {
+      this.setupEditMode();
+    } else {
+      this.setupViewMode();
+    }
+  }
+
+  private setupEditMode(): void {
+    const  content = this.getContent();
+    const firstInput = content.querySelector('input') as HTMLInputElement;
+    if (firstInput) {
+      setTimeout(() => firstInput.focus(), 100);
+    }
+  }
+
+  private setupViewMode(): void {
+    const content = this.getContent();
+    const oldPasswordInput = content.querySelector('#oldPassword') as HTMLInputElement;
+    const newPasswordInput = content.querySelector('#newdPassword') as HTMLInputElement;
+    if (oldPasswordInput) oldPasswordInput.value = '';
+    if (newPasswordInput) newPasswordInput.value = '';
+  }
+
 
   private async saveProfile(): Promise<void> {
     if (this.isLoading) return;
@@ -195,7 +263,7 @@ export class ProfilePage extends Block {
         const firstErrorField = Object.keys(errors)[0];
         const firstInput = content.querySelector(`[name="${firstErrorField}"]`) as HTMLInputElement;
         if (firstInput) {
-        firstInput.focus();
+          firstInput.focus();
         }
       }
     }
@@ -273,76 +341,9 @@ export class ProfilePage extends Block {
     });
   }
 
-  private toggleEditMode(): void {
-    this.isEditMode = !this.isEditMode;
-    
-    // Очищаем обработчик Escape при выходе из режима редактирования
-    if (!this.isEditMode && this.escapeHandler) {
-      document.removeEventListener('keydown', this.escapeHandler);
-      this.escapeHandler = undefined;
-    }
-    
-    // Обновляем отображение
-    this.forceUpdate();
-    
-    if (this.isEditMode) {
-      this.setupEditMode();
-    } else {
-      this.setupViewMode();
-    }
-  }
-
-  private setupEditMode(): void {
-    const content = this.getContent();
-    
-    // Автофокус на первом поле
-    const firstInput = content.querySelector('input') as HTMLInputElement;
-    if (firstInput) {
-      setTimeout(() => firstInput.focus(), 100);
-    }
-    
-    // Добавляем обработчик Escape
-    this.escapeHandler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && this.isEditMode) {
-        this.toggleEditMode();
-      }
-    };
-    document.addEventListener('keydown', this.escapeHandler);
-
-    // Настраиваем валидацию на blur в режиме редактирования
-    content.querySelectorAll('.form-input').forEach(input => {
-      input.addEventListener('blur', (e) => {
-        const target = e.target as HTMLInputElement;
-        this.validateOnBlur(target.name, target.value);
-      });
-      
-      input.addEventListener('focus', () => {
-        const formGroup = input.closest('.form-group');
-        const error = formGroup?.querySelector('.field-error');
-        if (error) {
-          error.remove();
-          input.classList.remove('has-error');
-        }
-        input.classList.remove('is-valid');
-      });
-    });
-  }
-
-  private setupViewMode(): void {
-    const content = this.getContent();
-    
-    // Очищаем поля пароля
-    const oldPasswordInput = content.querySelector('#oldPassword') as HTMLInputElement;
-    const newPasswordInput = content.querySelector('#newPassword') as HTMLInputElement;
-    
-    if (oldPasswordInput) oldPasswordInput.value = '';
-    if (newPasswordInput) newPasswordInput.value = '';
-  }
-
   private forceUpdate(): void {
     const content = this.getContent();
     content.innerHTML = this.render();
-    this.componentDidMount();
   }
 
   private async handleAvatarChange(input: HTMLInputElement): Promise<void> {
@@ -675,54 +676,10 @@ export class ProfilePage extends Block {
   }
 
   protected override componentDidMount(): void {
-    const content = this.getContent();
-    
-    // Кнопка "На главную"
-    const backHomeBtn = content.querySelector('#back-home');
-    if (backHomeBtn) {
-      backHomeBtn.addEventListener('click', () => {
-        window.history.pushState({}, '', '/');
-        window.dispatchEvent(new PopStateEvent('popstate'));
-      });
-    }
-    
-    // Кнопка "Отмена" (в режиме редактирования)
-    const cancelEditBtn = content.querySelector('#cancel-edit');
-    if (cancelEditBtn) {
-      cancelEditBtn.addEventListener('click', () => {
-        this.toggleEditMode();
-      });
-    }
-    
-    // Кнопка загрузки аватара
-    const avatarUploadLabel = content.querySelector('.avatar-upload-btn');
-    if (avatarUploadLabel) {
-      avatarUploadLabel.addEventListener('click', (e) => {
-        e.preventDefault();
-        const fileInput = content.querySelector('#avatar-input') as HTMLInputElement;
-        if (fileInput) {
-          fileInput.click();
-        }
-      });
-    }
-
-    if (this.isEditMode) {
-      content.querySelectorAll('.form-input').forEach(input => {
-        input.addEventListener('blur', (e) => {
-          const target = e.target as HTMLInputElement;
-          this.validateOnBlur(target.name, target.value);
-        });
-        
-        input.addEventListener('focus', () => {
-          const formGroup = input.closest('.form-group');
-          const error = formGroup?.querySelector('.field-error');
-          if (error) {
-            error.remove();
-            input.classList.remove('has-error');
-          }
-          input.classList.remove('is-valid');
-        });
-      });
+    const content = this.getContent();    
+    const firstInput = content.querySelector('input') as HTMLInputElement;
+    if (firstInput && this.isEditMode) {
+      setTimeout(() => firstInput.focus(), 100);
     }
   }
 }

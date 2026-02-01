@@ -1,6 +1,6 @@
 import { Block, Props } from '../../core/Block';
 
-interface InputProps extends Props{
+interface InputProps extends Props {
   id: string;
   label: string;
   placeholder?: string;

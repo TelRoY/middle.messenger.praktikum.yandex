@@ -95,6 +95,8 @@ function profileUpdateRequestToRecord(data: ProfileUpdateRequest): Record<string
 
 export class AuthAPI {
   static async login(data: LoginRequest): Promise<LoginResponse> {
+    console.log('📝 Login form submitted with data:', data);
+
     const requestData = loginRequestToRecord(data);
     const response = await apiClient.post<LoginResponse | ErrorResponse>(
       '/auth/signin',
@@ -182,9 +184,6 @@ export class AuthAPI {
     const response = await apiClient.put<ProfileResponse | ErrorResponse>(
       '/user/profile/avatar',
       formData,
-      {
-        headers: {}
-      }
     );
     
     if (!response.ok) {

@@ -12,6 +12,31 @@ export class RegistrationPage extends Block {
         submit: (e: Event) => {
           e.preventDefault();
           this.onSubmit();
+        },
+        click: (e: Event) => {
+          const target = e.target as HTMLElement;
+          if (target.id === 'homeBtn' || target.closest('#homeBtn')) {
+            window.history.pushState({}, '', '/');
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          }
+        },
+        blur: (e: Event) => {
+          const target = e.target as HTMLInputElement;
+          if (target.classList.contains('form-input')) {
+            this.validateOnBlur(target.name, target.value);
+          }
+        },
+        focus: (e: Event) => {
+          const target = e.target as HTMLInputElement;
+          if (target.classList.contains('form-input')) {
+            const formGroup = target.closest('.form-group');
+            const error = formGroup?.querySelector('.field-error');
+            if (error) {
+              error.remove();
+              target.classList.remove('has-error');
+            }
+            target.classList.remove('is-valid');
+          }
         }
       }
     });
@@ -23,7 +48,10 @@ export class RegistrationPage extends Block {
     const form = content.querySelector('form') as HTMLFormElement;
     if (form) {
       const formData = new FormData(form);
-      const data = Object.fromEntries(formData);
+      const data: Record<string, string> = {};
+      formData.forEach((value, key) => {
+        data[key] = value.toString().trim();
+      });;
       
       // ВАЛИДАЦИЯ НА SUBMIT
       const errors = Validator.validateForm(data, 'registration');
@@ -125,20 +153,27 @@ export class RegistrationPage extends Block {
     }
   }
 
-  private async attemptRegistration(data: Record<string, any>): Promise<void> {
+  private async attemptRegistration(data: Record<string, string>): Promise<void> {
     try {
       this.setLoading(true);
       
       this.showAllErrors({});
       
       const registrationData = {
-        first_name: data['first_name'].toString().trim(),
-        second_name: data['second_name'].toString().trim(),
-        login: data['login'].toString().trim(),
-        email: data['email'].toString().trim(),
-        password: data['password'].toString().trim(),
-        phone: data['phone'].toString().trim()
+        first_name: data['first_name'] || '',
+        second_name: data['second_name'] || '',
+        login: data['login'] || '',
+        email: data['email'] || '',
+        password: data['password'] || '',
+        phone: data['phone'] || ''
       };
+
+      const requiredFields = ['first_name', 'second_name', 'login', 'email', 'password', 'phone'];
+      const missingFields = requiredFields.filter(field => !registrationData[field as keyof typeof registrationData]?.trim());
+      
+      if (missingFields.length > 0) {
+        throw new Error('Все поля обязательны для заполнения');
+      }
       
       await AuthAPI.register(registrationData);
       
@@ -368,35 +403,6 @@ export class RegistrationPage extends Block {
 
   protected override componentDidMount(): void {
     const content = this.getContent();
-    
-    // Кнопка "На главную"
-    const homeBtn = content.querySelector('#homeBtn');
-    if (homeBtn) {
-      homeBtn.addEventListener('click', () => {
-        window.history.pushState({}, '', '/');
-        window.dispatchEvent(new PopStateEvent('popstate'));
-      });
-    }
-
-    // НАСТРОЙКА ВАЛИДАЦИИ НА BLUR
-    content.querySelectorAll('.form-input').forEach(input => {
-      // Валидация при уходе с поля
-      input.addEventListener('blur', (e) => {
-        const target = e.target as HTMLInputElement;
-        this.validateOnBlur(target.name, target.value);
-      });
-
-      // Очистка ошибки при фокусе
-      input.addEventListener('focus', () => {
-        const formGroup = input.closest('.form-group');
-        const error = formGroup?.querySelector('.field-error');
-        if (error) {
-          error.remove();
-          input.classList.remove('has-error');
-        }
-        input.classList.remove('is-valid');
-      });
-    });
     
     // Автофокус на первое поле
     const firstInput = content.querySelector('input') as HTMLInputElement;
