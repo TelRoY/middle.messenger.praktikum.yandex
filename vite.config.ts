@@ -1,25 +1,26 @@
+/// <reference types="vite/client" />
 import { resolve } from "path";
-import { defineConfig } from "vite";
+import { defineConfig, PluginOption } from "vite";
 import fs from "fs";
 import path from "path";
 import Handlebars from "handlebars";
 
 // Функция для загрузки partials
-const loadPartials = (partialsDir) => {
-  const partials = {};
+const loadPartials = (partialsDir: string) => {
+  const partials: Record<string, string> = {};
 
-  const registerPartial = (name, content) => {
+  const registerPartial = (name: string, content: string) => {
     try {
       // Проверяем синтаксис перед регистрацией
       Handlebars.compile(content);
       partials[name] = content;
       Handlebars.registerPartial(name, content);
     } catch (error) {
-      console.error(`✗ Ошибка в partial ${name}:`, error.message);
+      console.error(`✗ Ошибка в partial ${name}:`, (error as Error).message);
     }
   };
 
-  const readPartialsRecursive = (dir, prefix = "") => {
+  const readPartialsRecursive = (dir: string, prefix = "") => {
     const items = fs.readdirSync(dir, { withFileTypes: true });
 
     items.forEach((item) => {
@@ -40,8 +41,22 @@ const loadPartials = (partialsDir) => {
   return partials;
 };
 
+// Интерфейс для контекста Handlebars
+interface PageContext {
+  [key: string]: unknown;
+  title?: string;
+  pageName?: string;
+  menuItems?: Array<{ title: string; url: string }>;
+}
+
+// Интерфейс для опций плагина
+interface HandlebarsPluginOptions {
+  partialsDir?: string;
+  context?: PageContext;
+}
+
 // Кастомный плагин Handlebars
-const createHandlebarsPlugin = (options = {}) => {
+function createHandlebarsPlugin(options: HandlebarsPluginOptions = {}) {
   const partialsDir = options.partialsDir || "src/components";
   const context = options.context || {};
 
@@ -49,11 +64,11 @@ const createHandlebarsPlugin = (options = {}) => {
   loadPartials(resolve(partialsDir));
 
   // Регистрируем хелперы
-  Handlebars.registerHelper("json", function (context) {
+  Handlebars.registerHelper("json", function (context: unknown) {
     return JSON.stringify(context);
   });
 
-  Handlebars.registerHelper("ifEquals", function (arg1, arg2, options) {
+  Handlebars.registerHelper("ifEquals", function (this: unknown, arg1: unknown, arg2: unknown, options: Handlebars.HelperOptions) {
     return arg1 === arg2 ? options.fn(this) : options.inverse(this);
   });
 
@@ -62,7 +77,7 @@ const createHandlebarsPlugin = (options = {}) => {
 
     transformIndexHtml: {
       order: "pre",
-      handler(html, ctx) {
+      handler(html: string, ctx: { filename?: string; }) {
         const filename = ctx.filename || "unknown";
 
         try {
@@ -71,12 +86,12 @@ const createHandlebarsPlugin = (options = {}) => {
             ...context,
             pageName: path.basename(filename, ".html"),
             menuItems: [
-              { title: "Авторизация", url: "/src/pages/authorization/authorization.html" },
-              { title: "Регистрация", url: "/src/pages/registration/registration.html" },
-              { title: "Главная", url: "/src/pages/home/home.html" },
-              { title: "Профиль", url: "/src/pages/profile/profile.html" },
-              { title: "404", url: "/src/pages/404/404.html" },
-              { title: "500", url: "/src/pages/500/500.html" },
+              { title: "Авторизация", url: "/authorization" },
+              { title: "Регистрация", url: "/registration" },
+              { title: "Главная", url: "/home.html" },
+              { title: "Профиль", url: "/profile" },
+              { title: "404", url: "/404.html" },
+              { title: "500", url: "/500.html" },
             ],
           };
 
@@ -89,7 +104,7 @@ const createHandlebarsPlugin = (options = {}) => {
           const result = template(pageContext);
           return result;
         } catch (error) {
-          console.error(error.message);
+          console.error(error instanceof Error ? error.message : String(error));
           const safeHtml = html
             .replace(/\{\{[\s\S]*?\}\}/g, "") // Удаляем все {{...}}
             .replace(/\{\{#[\s\S]*?\}\}/g, "") // Удаляем все {{#...}}
@@ -100,7 +115,7 @@ const createHandlebarsPlugin = (options = {}) => {
       },
     },
   };
-};
+}
 
 export default defineConfig({
   root: __dirname,
@@ -112,10 +127,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, "index.html"),
-        authorization: resolve(__dirname, "src/pages/authorization/authorization.html"),
-        registration: resolve(__dirname, "src/pages/registration/registration.html"),
         home: resolve(__dirname, "src/pages/home/home.html"),
-        profile: resolve(__dirname, "src/pages/profile/profile.html"),
         error404: resolve(__dirname, "src/pages/404/404.html"),
         error500: resolve(__dirname, "src/pages/500/500.html"),
       },
@@ -130,7 +142,7 @@ export default defineConfig({
 
   preview: {
     port: 3000,
-    open: true, // ← И ЭТУ ДЛЯ PREVIEW
+    open: true,
   },
 
   css: {
@@ -143,6 +155,6 @@ export default defineConfig({
       context: {
         title: "MyMate",
       },
-    }),
+    }) as PluginOption,
   ],
 });

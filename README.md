@@ -12,6 +12,16 @@ Vanilla JavaScript - чистая реализация без фреймворк
 
 CSS Variables - кастомные свойства для единого дизайна
 
+Компонентный подход
+
+Typescript
+
+ESLint, Stylelint
+
+Event Bus
+
+XMLHttplRequest
+
 ## Начало работы
 Предварительные требования
 Node.js версии 14 или выше
@@ -64,15 +74,14 @@ npm run start
 
   Навигация по всем страницам
 
-2. Авторизация - /src/pages/authorization/authorization.html
-
+2. Авторизация - /authorization
   Форма входа в аккаунт
 
   Поля для логина и пароля
 
   Ссылка на регистрацию
 
-3. Регистрация - /src/pages/registration/registration.html
+3. Регистрация - /registration
 
   Форма создания нового аккаунта
 
@@ -86,7 +95,7 @@ npm run start
 
   Область сообщений (правая колонка)
 
-5. Страница профиля - /src/pages/profile/profile.html
+5. Страница профиля - /profile
 
   Данные профиля: аватар, имя, фамилия, логин, email, телефон
   

@@ -4,6 +4,7 @@
   --font-size-sm: 1rem;
   --font-size-md: 1.5rem;
   --font-size-lg: 3rem;
+  
   /* Colors */
   --color-primary: #6a11cb;
   --color-secondary: #2575fc;
@@ -11,6 +12,13 @@
   --color-text-light: #636e72d5;
   --color-white: #ffffff;
   --color-shadow: rgba(250, 8, 8, 0.5);
+
+ /* Colors for chat */
+  --color-background: #f8f9fa;
+  --color-hover: #e9ecef;
+  --color-border: #dee2e6;
+  --color-border-light: #e9ecef;
+  --color-primary-light: #e6d9fa;
 
   /* Gradients */
   --gradient-primary: linear-gradient(140deg, #a99fe2 40%, #2575fc 50%);
@@ -33,4 +41,5 @@
 
   /* Shadows */
   --shadow-main: 10px 25px 50px var(--color-shadow);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.1);
 }

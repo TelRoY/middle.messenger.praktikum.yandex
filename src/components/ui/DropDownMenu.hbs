@@ -1,0 +1,32 @@
+{{!--
+  Компонент выпадающего меню
+  
+  Параметры:
+  - items: массив элементов меню [{text, icon, action}]
+  - buttonText: текст на кнопке
+--}}
+
+<div class="dropdown-menu">
+  <button class="dropdown-menu__button" type="button">
+    {{#if buttonText}}
+      {{buttonText}}
+    {{else}}
+      <svg class="dropdown-menu__icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="6" r="2" fill="currentColor"/>
+        <circle cx="12" cy="12" r="2" fill="currentColor"/>
+        <circle cx="12" cy="18" r="2" fill="currentColor"/>
+      </svg>
+    {{/if}}
+  </button>
+  
+  <div class="dropdown-menu__list">
+    {{#each items}}
+      <button class="dropdown-menu__item" type="button" data-action="{{action}}">
+        {{#if icon}}
+          <span class="dropdown-menu__item-icon">{{icon}}</span>
+        {{/if}}
+        <span class="dropdown-menu__item-text">{{text}}</span>
+      </button>
+    {{/each}}
+  </div>
+</div>
