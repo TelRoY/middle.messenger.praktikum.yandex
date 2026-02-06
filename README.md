@@ -116,4 +116,4 @@ npm run start
   Кнопка возврата на главную
 
 ### Домен из Netlify
-[https://voluble-squirrel-4abcc3.netlify.app/](https://voluble-squirrel-4abcc3.netlify.app/)
+[https://my-mate.netlify.app/](https://voluble-squirrel-4abcc3.netlify.app/)
