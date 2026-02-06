@@ -41,6 +41,27 @@ const loadPartials = (partialsDir: string) => {
   return partials;
 };
 
+const handlebarsImportPlugin = {
+  name: "handlebars-import",
+  
+  transform(code: string, id: string) {
+    if (id.endsWith('.hbs')) {
+      // Преобразуем содержимое .hbs файла в строку
+      const content = fs.readFileSync(id, 'utf-8');
+      // Экранируем спецсимволы для JavaScript строки
+      const escapedContent = content
+        .replace(/\\/g, '\\\\')
+        .replace(/`/g, '\\`')
+        .replace(/\${/g, '\\${');
+      
+      return {
+        code: `export default \`${escapedContent}\`;`,
+        map: null
+      };
+    }
+  }
+};
+
 // Интерфейс для контекста Handlebars
 interface PageContext {
   [key: string]: unknown;
@@ -150,6 +171,7 @@ export default defineConfig({
   },
 
   plugins: [
+    handlebarsImportPlugin,
     createHandlebarsPlugin({
       partialsDir: "src/components",
       context: {

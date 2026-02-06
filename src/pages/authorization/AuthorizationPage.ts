@@ -1,6 +1,9 @@
 import { Block } from '../../core/Block';
 import { Validator } from '../../utils/Validator';
 import { AuthAPI } from '../../api/AuthAPI';
+import { compile } from 'handlebars';
+import templateSource from './authorization.hbs';
+import { router } from '../../main';
 
 export class AuthorizationPage extends Block {
   private validationTimeout?: NodeJS.Timeout;
@@ -18,8 +21,19 @@ export class AuthorizationPage extends Block {
           
           // Кнопка "Регистрация"
           if (target.id === 'registration-btn' || target.closest('#registration-btn')) {
-            window.history.pushState({}, '', '/registration');
-            window.dispatchEvent(new PopStateEvent('popstate'));
+            e.preventDefault();
+            router.go('/sign-up');
+            return;
+          }
+
+          const link = target.closest('a');
+          if (link) {
+            e.preventDefault();
+            const href = link.getAttribute('href');
+            if (href) {
+              router.go(href);
+              return;;
+            }
           }
         },
         blur: (e: Event) => {
@@ -258,57 +272,25 @@ export class AuthorizationPage extends Block {
     }
   }
 
-  protected override render(): string {
-    return `
-      <main class="container">
-        <div class="header">
-          <h1>MyMate</h1>
-          <p>Войдите в свой аккаунт, чтобы продолжить</p>
-        </div>
-
-        <div class="main">
-          <form id="login-form" class="auth-form">
-            <div class="form-group">
-              <label for="login" class="form-label">Логин</label>
-              <input
-                type="text"
-                id="login"
-                name="login"
-                class="form-input"
-                placeholder="Введите логин или email"
-                required
-                autocomplete="username"
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="password" class="form-label">Пароль</label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                class="form-input"
-                placeholder="Введите пароль"
-                required
-                minlength="6"
-                autocomplete="current-password"
-              />
-            </div>
-
-            <div class="form-buttons login-buttons">
-              <button type="submit" class="component-button component-button--primary component-button--authorization">
-                Авторизация
-              </button>
-              
-              <button type="button" id="registration-btn" class="component-button component-button--secondary component-button--registration">
-                Регистрация
-              </button>
-            </div>
-          </form>
-        </div>
-      </main>
-    `;
+  public override render(): string {
+    const template = compile(templateSource);
+    return template({});
   }
+
+  public override show(): void {
+    const content = this.getContent();
+    if (content) {
+      content.style.display = 'block';
+    }
+  }
+
+  public override hide(): void {
+    const content = this.getContent();
+    if (content) {
+      content.style.display = 'none';
+    }
+  }
+      
 
   protected override componentDidMount(): void {
     const content = this.getContent();

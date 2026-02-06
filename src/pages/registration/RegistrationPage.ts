@@ -1,6 +1,9 @@
 import { Block } from '../../core/Block';
 import { Validator } from '../../utils/Validator';
 import { AuthAPI } from '../../api/AuthAPI';
+import { compile } from 'handlebars';
+import templateSource from './registration.hbs';
+import { router } from '../../main';
 
 export class RegistrationPage extends Block {
   private validationTimeout?: NodeJS.Timeout;
@@ -16,8 +19,18 @@ export class RegistrationPage extends Block {
         click: (e: Event) => {
           const target = e.target as HTMLElement;
           if (target.id === 'homeBtn' || target.closest('#homeBtn')) {
-            window.history.pushState({}, '', '/');
-            window.dispatchEvent(new PopStateEvent('popstate'));
+            e.preventDefault();
+            router.go('/');
+            return;
+          }
+          const link = target.closest('a');
+          if (link) {
+            e.preventDefault();
+            const href = link.getAttribute('href');
+            if (href) {
+              router.go(href);
+              return;;
+            }
           }
         },
         blur: (e: Event) => {
@@ -306,99 +319,23 @@ export class RegistrationPage extends Block {
     }, 5000);
   }
 
-  protected override render(): string {
-    return `
-      <main class="container">
-        <div class="header">
-          <h1>Регистрация</h1>
-        </div>
+  public override render(): string {
+    const template = compile(templateSource);
+    return template({});
+  }
 
-        <form class="registration-form">
-          <div class="form-group">
-            <label for="first_name">Имя</label>
-            <input
-              type="text"
-              id="first_name"
-              name="first_name"
-              class="form-input"
-              placeholder="Иван"
-              required
-            />
-          </div>
+  public override show(): void {
+    const content = this.getContent();
+    if (content) {
+      content.style.display = 'block';
+    }
+  }
 
-          <div class="form-group">
-            <label for="second_name">Фамилия</label>
-            <input
-              type="text"
-              id="second_name"
-              name="second_name"
-              class="form-input"
-              placeholder="Иванов"
-              required
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="login">Логин</label>
-            <input
-              type="text"
-              id="login"
-              name="login"
-              class="form-input"
-              placeholder="ivanivanov"
-              required
-              minlength="3"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="email">Электронная почта</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              class="form-input"
-              placeholder="ivanivanov@yandex.ru"
-              required
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="password">Пароль</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              class="form-input"
-              placeholder="Минимум 6 символов"
-              required
-              minlength="6"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="phone">Телефон</label>
-            <input
-              type="tel"
-              id="phone"
-              name="phone"
-              class="form-input"
-              placeholder="+7 (800) 555-35-35"
-              required
-            />
-          </div>
-
-          <div class="form-buttons">
-            <button type="submit" class="component-button component-button--primary">
-              Зарегистрироваться
-            </button>
-            <button type="button" class="component-button component-button--secondary" id="homeBtn">
-              На главную
-            </button>
-          </div>
-        </form>
-      </main>
-    `;
+  public override hide(): void {
+    const content = this.getContent();
+    if (content) {
+      content.style.display = 'none';
+    }
   }
 
   protected override componentDidMount(): void {

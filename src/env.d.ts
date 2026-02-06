@@ -5,6 +5,11 @@ declare module '*.hbs' {
   export default content;
 }
 
+declare module '*.handlebars' {
+  const content: string;
+  export default content;
+}
+
 declare module '*.css' {
   const content: Record<string, string>;
   export default content;
