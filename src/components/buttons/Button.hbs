@@ -5,7 +5,7 @@
     href="/page.html"
   }} --}}
 
-{{#if href}}
+{{!-- {{#if href}}
 <a href="{{href}}" class="button button-{{variant}}">
   {{text}}
 </a>
@@ -13,4 +13,13 @@
 <button type="button" class="button button-{{variant}}">
   {{text}}
 </button>
-{{/if}}
+{{/if}} --}}
+
+<button 
+  type="{{type}}" 
+  class="component-button component-button--{{variant}} {{className}}"
+  {{#if id}}id="{{id}}"{{/if}}
+  {{#if disabled}}disabled{{/if}}
+>
+  {{text}}
+</button>

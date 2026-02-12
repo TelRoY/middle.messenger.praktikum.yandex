@@ -1,21 +1,37 @@
-import { Block } from '../../core/Block';
+import { Block, Props } from '../../core/Block';
+import { compile } from 'handlebars';
+import templateSource from './Button.hbs';
 
-interface ButtonProps {
+interface ButtonProps extends Props {
+  type?: 'button' | 'submit' | 'reset';
+  variant?: 'primary' | 'secondary' | 'danger';
   text: string;
-  onClick?: () => void;
+  onClick?: (e: Event) => void;
+  disabled?: boolean;
+  className?: string;
+  id?: string;
 }
 
 export class Button extends Block {
   constructor(props: ButtonProps) {
-    super('button', {
+    super('div', {
       ...props,
       events: {
-        click: props.onClick || (() => {})
+        click: (e: Event) => {
+          if (props.onClick && !props.disabled) { 
+            props.onClick(e);
+          }
+        }
       }
     });
   }
 
   protected override render(): string {
-    return `<div>${this.props['text']}</div>`;
+    const template = compile(templateSource);
+    return template({
+      ...this.props,
+      className: this.props['className'] || '',
+      disabled: this.props['disabled'] ? 'disabled' : ''
+    });
   }
 }

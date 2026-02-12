@@ -2,7 +2,6 @@ import "./styles/variables.css";
 import "./styles/global.css";
 import "./styles/components.css";
 import "./styles/validation.css";
-import "./styles/css.d.ts";
 import "../style.css";
 import "./pages/home/home.css";
 import "./components/forms/form.css";
@@ -17,7 +16,6 @@ import { Router } from './core/Router';
 import { RegistrationPage } from './pages/registration/RegistrationPage';
 import { AuthorizationPage } from './pages/authorization/AuthorizationPage';
 import { ProfilePage } from './pages/profile/ProfilePage';
-// import { ChatsPage } from "./pages/home/home.ts";
 
 console.log("MyMate messenger loaded!");
 
@@ -27,18 +25,14 @@ router
   .use('/', AuthorizationPage)
   .use('/sign-up', RegistrationPage)
   .use('/settings', ProfilePage)
-  .use('/messenger', AuthorizationPage)
-  .use('/404.html', AuthorizationPage)
-  .use('/500.html', AuthorizationPage);
-
-console.log('Routes registered:', ['/', '/sign-up', '/settings', '/messenger', '/404.html', '/500.html']);
+  .use('/messenger', AuthorizationPage) // Заглушка
+  .use('/404.html', AuthorizationPage) // Заглушка
+  .use('/500.html', AuthorizationPage); // Заглушка
 
 function initApp(): void {
   router.start();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('MyMate messenger started!');
-  console.log('Current path:', window.location.pathname);
   initApp();
 });
