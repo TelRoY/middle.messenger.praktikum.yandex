@@ -39,23 +39,42 @@ export abstract class Block {
   }
 
   private _extractChildren(propsAndChildren: Props): { children: Record<string, Block>, props: Props } {
-    const children: Record<string, Block> = {};
-    const props: Props = {};
+  const children: Record<string, Block> = {};
+  const props: Props = {};
 
-    Object.entries(propsAndChildren).forEach(([key, value]) => {
+  console.log('Block._extractChildren input keys:', Object.keys(propsAndChildren));
+
+  // Сначала проверяем, есть ли прямой ключ 'children'
+  if (propsAndChildren['children'] && typeof propsAndChildren['children'] === 'object') {
+    console.log('Found direct children object');
+    const childrenObj = propsAndChildren['children'] as Record<string, any>;
+    Object.entries(childrenObj).forEach(([key, value]) => {
       if (value instanceof Block) {
+        console.log(`Adding child from children object: ${key}`);
         children[key] = value;
-      } else if (key === 'children' && typeof value === 'object' && value !== null) {
-      const nestedChildren = this._extractChildren(value as Props);
-      Object.assign(children, nestedChildren.children);
-      Object.assign(props, nestedChildren.props);
       } else {
-        props[key] = value;
+        console.warn(`Child ${key} is not a Block instance:`, typeof value);
       }
     });
-
-    return { children, props };
+    // Удаляем children из props, чтобы не смешивать
+    delete propsAndChildren['children'];
   }
+
+  // Затем проверяем остальные свойства на наличие экземпляров Block
+  Object.entries(propsAndChildren).forEach(([key, value]) => {
+    if (value instanceof Block) {
+      console.log(`Adding child from props: ${key}`);
+      children[key] = value;
+    } else if (key !== 'children') { // Пропускаем уже обработанный ключ
+      props[key] = value;
+    }
+  });
+
+  console.log('Block._extractChildren extracted children:', Object.keys(children));
+  console.log('Block._extractChildren extracted props:', Object.keys(props));
+
+  return { children, props };
+}
 
   public getChildren(): Record<string, Block> {
     return this.children;

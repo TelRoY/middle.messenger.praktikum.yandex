@@ -27,6 +27,7 @@ export class Route {
   leave(): void {
     if (this._block) {
       this._block.hide();
+      this._block = null;
     }
   }
 
@@ -38,10 +39,17 @@ export class Route {
     if (!this._block) {
       this._block = new this._blockClass();
       this.renderBlock();
-      return;
+    } else {
+      this._block.show();
     }
+  }
 
-    this._block.show();
+  forceRender(): void {
+    if (this._block) {
+      this._block.hide();
+    }
+      this._block = new this._blockClass();
+      this.renderBlock();
   }
 
   private renderBlock(): void {
@@ -59,7 +67,6 @@ export class Route {
 export class Router {
   private static __instance: Router;
   private routes: Route[] = [];
-  private history = window.history;
   private _currentRoute: Route | null = null;
   private _rootQuery: string | undefined;
   private _isNavigating: boolean = false;
@@ -92,52 +99,72 @@ export class Router {
     this._onRoute(window.location.pathname);
   }
 
-  private _onRoute(pathname: string): void {
+  go(pathname: string): void {
     if (this._isNavigating) {
+      console.log('⚠️ Already navigating, skipping');
       return;
     }
 
     this._isNavigating = true;
+    console.log(`🔄 Router.go() to ${pathname}`);
 
-    try {
-      // Удаляем .html из пути если есть
-      const cleanPathname = pathname.replace('.html', '');
+    const cleanPathname = pathname.replace('.html', '');
+    const currentPath = window.location.pathname.replace('.html', '');
     
-      const route = this.getRoute(cleanPathname);
-      if (!route) {
-        // Если маршрут не найден, показываем 404
-        this.go('/404.html');
-        return;
-      }
-
-      if (this._currentRoute && this._currentRoute !== route) {
-        this._currentRoute.leave();
-      }
-
-      this._currentRoute = route;
-      route.render();
-    } finally {
+    // Проверяем, не пытаемся ли перейти на ту же страницу
+    if (currentPath === cleanPathname && this._currentRoute) {
+      console.log('⚠️ Same route, forcing re-render');
+      window.history.pushState({}, '', pathname);
+      this._currentRoute.forceRender();
       setTimeout(() => {
         this._isNavigating = false;
-      }, 50);
+      }, 300);
+      return;
     }
+
+    window.history.pushState({}, '', pathname);
+    this._onRoute(pathname);
+
+    setTimeout(() => {
+      this._isNavigating = false;
+    }, 50);
   }
 
-  go(pathname: string): void {
-    this.history.pushState({}, '', pathname);
-    this._onRoute(pathname);
+  private _onRoute(pathname: string): void {
+    console.log(`📍 Router._onRoute() for ${pathname}`);
+
+    const cleanPathname = pathname.replace('.html', '');
+    const route = this.getRoute(cleanPathname);
+
+    if (!route) {
+      console.log(`❌ No route for ${cleanPathname}`);
+      this._isNavigating = false;
+      return;
+    }
+
+    if (this._currentRoute) {
+      console.log('👋 Leaving current route');
+      this._currentRoute.leave();
+    }
+
+    this._currentRoute = route;
+    console.log('🎯 Rendering new route');
+    route.render();
+
+    setTimeout(() => {
+      this._isNavigating = false;
+    }, 300);
   }
 
   back(): void {
-    this.history.back();
+    window.history.back();
   }
 
   forward(): void {
-    this.history.forward();
+    window.history.forward();
   }
 
   getRoute(pathname: string): Route | undefined {
-    const cleanPathname = pathname.replace('.html', '');
-    return this.routes.find(route => route.match(cleanPathname));
+    return this.routes.find(route => route.match(pathname));
   }
 }

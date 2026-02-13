@@ -12,10 +12,13 @@ export class Form extends Block {
           }
         }
       };
+    const { children, ...restProps } = props;
     // Передаем все props в базовый класс
     super('form', {
-      ...props,
-    events
+      ...restProps,
+      children,
+      // ...props,
+      events
     });
   }  
 
@@ -50,7 +53,7 @@ export class Form extends Block {
     Object.keys(children).forEach(key => {
       context[key] = `<div data-id="${key}"></div>`;
     });
-
+    
     return template(context);
   }
 }

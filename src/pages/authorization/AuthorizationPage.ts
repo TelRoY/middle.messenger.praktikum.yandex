@@ -73,8 +73,10 @@ export class AuthorizationPage extends Block {
       events: {
         click: (e: Event) => {
           const target = e.target as HTMLElement;
-          if (target.id === 'registration-btn' || target.closest('#registration-btn')) {
+          if (target.closest('#registration-btn')) {
             e.preventDefault();
+            e.stopPropagation();
+            console.log('🔵 Registration button clicked, navigating to /sign-up');
             router.go('/sign-up');
           }
         }
@@ -317,17 +319,21 @@ export class AuthorizationPage extends Block {
   }
 
   public override show(): void {
+    console.log('👁️ Showing AuthorizationPage');
     const content = this.getContent();
     if (content) {
       content.style.display = 'block';
     }
+    // super.show();
   }
 
   public override hide(): void {
+    console.log('👋 Hiding AuthorizationPage');
     const content = this.getContent();
     if (content) {
       content.style.display = 'none';
     }
+    // super.hide();
   }
       
 
