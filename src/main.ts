@@ -21,9 +21,8 @@ import { AuthorizationPage } from './pages/authorization/AuthorizationPage';
 import { ProfilePage } from './pages/profile/ProfilePage';
 import { MessengerPage } from "./pages/messenger/MessengerPage";
 
-
-Handlebars.registerHelper('eq', function(this: undefined, arg1: unknown, arg2: unknown, options: Handlebars.HelperOptions) {
-  return arg1 === arg2 ? options.fn(this) : options.inverse(this);
+Handlebars.registerHelper('eq', function(arg1, arg2) {
+  return arg1 === arg2;
 });
 
 console.log("MyMate messenger loaded!");
