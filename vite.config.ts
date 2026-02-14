@@ -93,6 +93,10 @@ function createHandlebarsPlugin(options: HandlebarsPluginOptions = {}) {
     return arg1 === arg2 ? options.fn(this) : options.inverse(this);
   });
 
+  Handlebars.registerHelper("eq", function (this: unknown, arg1: unknown, arg2: unknown, options: Handlebars.HelperOptions) {
+    return arg1 === arg2 ? options.fn(this) : options.inverse(this);
+  });
+
   return {
     name: "handlebars",
 
