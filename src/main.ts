@@ -4,7 +4,6 @@ import "./styles/global.css";
 import "./styles/components.css";
 import "./styles/validation.css";
 import "../style.css";
-import "./pages/home/home.css";//убрать
 import "./pages/messenger/messenger.css";
 import "./components/forms/form.css";
 import "./components/buttons/button.css";
