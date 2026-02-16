@@ -1,11 +1,12 @@
 import { apiClient } from '../utils/HTTPClient';
+import { User } from '../models/User';
 
 export interface LoginRequest {
   login: string;
   password: string;
 }
 
-export interface LoginResponse {
+export interface LoginResponse extends User {
   id: number;
   first_name: string;
   second_name: string;
@@ -38,7 +39,7 @@ export interface ProfileUpdateRequest {
   phone?: string | undefined;
 }
 
-export interface ProfileResponse {
+export interface ProfileResponse extends User {
   id: number;
   first_name: string;
   second_name: string;
@@ -112,18 +113,26 @@ export class AuthAPI {
   }
 
   static async register(data: RegistrationRequest): Promise<RegistrationResponse> {
-    const requestData = registrationRequestToRecord(data);
-    const response = await apiClient.post<RegistrationResponse | ErrorResponse>(
-      '/auth/signup',
-      requestData
-    );
+    try {
+      const requestData = registrationRequestToRecord(data);
+      console.log('📤 Sending registration request to:', '/auth/signup', requestData);
+      const response = await apiClient.post<RegistrationResponse | ErrorResponse>(
+        '/auth/signup',
+        requestData
+      );
+      
+      console.log('📥 Registration response:', response);
     
-    if (!response.ok) {
-      const error = response.data as ErrorResponse;
-      throw new Error(error.reason || 'Ошибка регистрации');
+      if (!response.ok) {
+        const error = response.data as ErrorResponse;
+        throw new Error(error.reason || 'Ошибка регистрации');
+      }
+    
+      return response.data as RegistrationResponse;
+    } catch (error) {
+      console.error('❌ Registration error details:', error);
+      throw error;
     }
-    
-    return response.data as RegistrationResponse;
   }
 
   static async logout(): Promise<void> {

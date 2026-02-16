@@ -1,4 +1,3 @@
-
 import "./styles/variables.css";
 import "./styles/global.css";
 import "./styles/components.css";
@@ -19,6 +18,12 @@ import { RegistrationPage } from './pages/registration/RegistrationPage';
 import { AuthorizationPage } from './pages/authorization/AuthorizationPage';
 import { ProfilePage } from './pages/profile/ProfilePage';
 import { MessengerPage } from "./pages/messenger/MessengerPage";
+import store from './store/Store'
+import { apiClient } from "./utils/HTTPClient";
+
+apiClient.get('/ping')
+  .then(() => console.log('✅ API connection works'))
+  .catch(err => console.error('❌ API connection failed:', err));
 
 Handlebars.registerHelper('eq', function(arg1, arg2) {
   return arg1 === arg2;
@@ -27,6 +32,23 @@ Handlebars.registerHelper('eq', function(arg1, arg2) {
 console.log("MyMate messenger loaded!");
 
 export const router = new Router('#app');
+
+// Проверяем авторизацию при загрузке
+store.initAuth().then(() => {
+  const currentPath = window.location.pathname;
+  const user = store.getState().user;
+
+  // Защита роутов
+  if (user) {
+    if (currentPath === '/' || currentPath === '/sign-up') {
+      router.go('/messenger');
+    }
+  } else {
+    if (currentPath !== '/' && currentPath !== '/sign-up') {
+      router.go('/');
+    }
+  }
+});
 
 router
   .use('/', AuthorizationPage)
