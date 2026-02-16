@@ -35,6 +35,7 @@ class Store extends EventBus {
 
   constructor() {
     super();
+    // this.setState(this.state);
   }
 
   public getState(): State {

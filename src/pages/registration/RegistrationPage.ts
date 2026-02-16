@@ -326,7 +326,8 @@ export class RegistrationPage extends Block {
           router.go('/messenger');
         }, 3000);
         
-      } catch {
+      } catch (loginError) {
+        console.error('❌ Auto-login failed:', loginError);
         this.showSuccess('Регистрация успешна! Теперь войдите в систему.');
         
         setTimeout(() => {

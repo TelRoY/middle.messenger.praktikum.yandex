@@ -38,7 +38,7 @@ export class HTTPClient {
 
   constructor(baseURL: string = 'https://ya-praktikum.tech/api/v2') {
     this.baseURL = baseURL;
-    // console.log('🚀 HTTPClient created with baseURL:', baseURL);
+    console.log('🚀 HTTPClient created with baseURL:', this.baseURL);
   }
 
   async request<T = unknown>(
@@ -56,8 +56,8 @@ export class HTTPClient {
     if (params) {
       fullUrl += `?${queryStringify(params)}`;
     }
-
-    console.log(`📨 HTTP Request: ${method} ${fullUrl}`, { data, headers });
+    console.log(`🌐 Full URL: ${fullUrl}`);
+    console.log(`📨 HTTP Request: ${method} ${fullUrl}`, { data, headers, baseURL: this.baseURL });
     
     const requestHeaders: Record<string, string> = {
       ...headers
@@ -259,12 +259,12 @@ export class HTTPClient {
     url: string,
     options?: { data?: Record<string, unknown> } & Omit<HTTPRequestOptions, 'method' | 'data'>
   ): Promise<HTTPResponse<T>> {
-    const { data, ...rest } = options || {};
+    // const { data, ...rest } = options || {};
     return this.request<T>(url, {
-      ...rest,
-      // ...options,
+      // ...rest,
+      ...options,
       method: HTTPMethod.DELETE,
-      data
+      // data
     });
   }
 
@@ -281,4 +281,4 @@ export class HTTPClient {
   }
 }
 
-export const apiClient = new HTTPClient('');
+export const apiClient = new HTTPClient('https://ya-praktikum.tech/api/v2');

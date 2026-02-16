@@ -1,4 +1,4 @@
-import { apiClient } from '../utils/HTTPClient';
+import { apiClient, HTTPClient } from '../utils/HTTPClient';
 import { User } from '../models/User';
 
 export interface LoginRequest {
@@ -98,8 +98,16 @@ export class AuthAPI {
   static async login(data: LoginRequest): Promise<LoginResponse> {
     console.log('📝 Login form submitted with data:', data);
 
+    try {
+      await this.logout();
+      console.log('✅ Previous session cleared');
+    } catch {
+      console.log('ℹ️ No active session to clear');
+    }
+
     const requestData = loginRequestToRecord(data);
-    const response = await apiClient.post<LoginResponse | ErrorResponse>(
+    const client = new HTTPClient('https://ya-praktikum.tech/api/v2');
+    const response = await client.post<LoginResponse | ErrorResponse>(
       '/auth/signin',
       requestData
     );
@@ -114,21 +122,41 @@ export class AuthAPI {
 
   static async register(data: RegistrationRequest): Promise<RegistrationResponse> {
     try {
+      console.log('📤 Sending registration request to:', '/auth/signup', data);
       const requestData = registrationRequestToRecord(data);
-      console.log('📤 Sending registration request to:', '/auth/signup', requestData);
-      const response = await apiClient.post<RegistrationResponse | ErrorResponse>(
-        '/auth/signup',
-        requestData
-      );
       
-      console.log('📥 Registration response:', response);
-    
+      console.log('📤 Sending registration request to:', '/auth/signup', requestData);
+      const response = await fetch('https://ya-praktikum.tech/api/v2/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(requestData)
+      });
+
+      const responseData = await response.json();
+      console.log('📥 Registration response:', { status: response.status, data: responseData });
+
       if (!response.ok) {
-        const error = response.data as ErrorResponse;
-        throw new Error(error.reason || 'Ошибка регистрации');
+        throw new Error(responseData.reason || 'Ошибка регистрации');
       }
+
+      return responseData;
+
+      // const response = await apiClient.post<RegistrationResponse | ErrorResponse>(
+      //   '/auth/signup',
+      //   requestData
+      // );
+      
+      // console.log('📥 Registration response:', response);
     
-      return response.data as RegistrationResponse;
+      // if (!response.ok) {
+      //   const error = response.data as ErrorResponse;
+      //   throw new Error(error.reason || 'Ошибка регистрации');
+      // }
+    
+      // return response.data as RegistrationResponse;
     } catch (error) {
       console.error('❌ Registration error details:', error);
       throw error;
@@ -136,25 +164,43 @@ export class AuthAPI {
   }
 
   static async logout(): Promise<void> {
-    const response = await apiClient.post('/auth/logout');
-    
-    if (!response.ok) {
-      throw new Error('Ошибка при выходе');
-    }
-  }
-
-  static async getCurrentUser(): Promise<ProfileResponse> {
-    const response = await apiClient.get<ProfileResponse | ErrorResponse>(
-      '/auth/user'
-    );
+    console.log('👋 Logging out');
+    const client = new HTTPClient('https://ya-praktikum.tech/api/v2');
+    const response = await client.post<ErrorResponse>('/auth/logout', {});
     
     if (!response.ok) {
       const error = response.data as ErrorResponse;
-      throw new Error(error.reason || 'Ошибка получения данных пользователя');
+      throw new Error(error.reason || 'Ошибка при выходе');
     }
-    
-    return response.data as ProfileResponse;
+    console.log('✅ Logout successful');
   }
+
+  static async getCurrentUser(): Promise<ProfileResponse | null> {
+    try {
+      const client = new HTTPClient('https://ya-praktikum.tech/api/v2');
+      const response = await client.get<ProfileResponse | ErrorResponse>('/auth/user');
+
+      if (!response.ok) {
+        return null;
+      }
+
+      return response.data as ProfileResponse;
+    } catch (error) {
+      console.error('Error getting current user:', error);
+      return null;
+    }
+  }
+  //   const response = await apiClient.get<ProfileResponse | ErrorResponse>(
+  //     '/auth/user'
+  //   );
+    
+  //   if (!response.ok) {
+  //     const error = response.data as ErrorResponse;
+  //     throw new Error(error.reason || 'Ошибка получения данных пользователя');
+  //   }
+    
+  //   return response.data as ProfileResponse;
+  // }
 
   static async updateProfile(data: ProfileUpdateRequest): Promise<ProfileResponse> {
     const requestData = profileUpdateRequestToRecord(data);

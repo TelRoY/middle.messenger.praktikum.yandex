@@ -277,12 +277,25 @@ export class AuthorizationPage extends Block {
       let errorMessage = 'Ошибка при входе. Проверьте данные и попробуйте снова.';
       
       if (error instanceof Error) {
-        errorMessage = error.message || errorMessage;
-      } else if (typeof error === 'string') {
-        errorMessage = error;
-      } else if (error && typeof error === 'object' && 'message' in error) {
-        errorMessage = String((error as any).message);
-      }
+        if (error.message.includes('User already in system')) {
+          errorMessage = 'Вы уже вошли в систему. Попробуйте выйти и войти снова.';
+          try {
+            await AuthAPI.logout();
+            // Повторяем попытку входа
+            await this.attemptLogin(data);
+            return;
+          } catch (logoutError) {
+            console.error('Logout failed:', logoutError);
+          } 
+        } else {
+            errorMessage = error.message || errorMessage;
+          }
+        }
+      // } else if (typeof error === 'string') {
+      //   errorMessage = error;
+      // } else if (error && typeof error === 'object' && 'message' in error) {
+      //   errorMessage = String((error as any).message);
+      // }
       
       this.showGlobalError(errorMessage);
     } finally {

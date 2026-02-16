@@ -19,11 +19,11 @@ import { AuthorizationPage } from './pages/authorization/AuthorizationPage';
 import { ProfilePage } from './pages/profile/ProfilePage';
 import { MessengerPage } from "./pages/messenger/MessengerPage";
 import store from './store/Store'
-import { apiClient } from "./utils/HTTPClient";
+// import { apiClient } from "./utils/HTTPClient";
 
-apiClient.get('/ping')
-  .then(() => console.log('✅ API connection works'))
-  .catch(err => console.error('❌ API connection failed:', err));
+// apiClient.get('/ping')
+//   .then(() => console.log('✅ API connection works'))
+//   .catch(err => console.error('❌ API connection failed:', err));
 
 Handlebars.registerHelper('eq', function(arg1, arg2) {
   return arg1 === arg2;
