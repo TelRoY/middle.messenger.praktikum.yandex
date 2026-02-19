@@ -141,20 +141,36 @@ export abstract class Block {
     if (this._element) {
       this._removeEvents();
       this._element.innerHTML = block;
+
+      console.log('🔄 After innerHTML, element content:', this._element.innerHTML.substring(0, 200));
+      console.log('👥 Children to replace:', Object.keys(this.children));
+
       this._replacePlaceholders();
+
+      console.log('✅ After replace, element content:', this._element.innerHTML.substring(0, 200));
+
       this._addEvents();
     }
   }
 
-  private _replacePlaceholders(): void {
+  public _replacePlaceholders(): void {
     if (!this._element) {
+      console.log('❌ No element to replace placeholders');
       return;
     }
     const element = this._element;
     Object.entries(this.children).forEach(([key, child]) => {
       const placeholder = element.querySelector(`[data-id="${key}"]`);
       if (placeholder) {
+        console.log(`✅ Found placeholder for ${key}, replacing...`);
+        const childContent = child.getContent();
+        console.log(`📦 Child content for ${key}:`, childContent);
+        console.log(`✅ Replacing placeholder for ${key}`);
         placeholder.replaceWith(child.getContent());
+      } else {
+        console.log(`❌ Placeholder not found for ${key}`);
+        const allPlaceholders = element.querySelectorAll('[data-id]');
+        console.log('Available placeholders:', Array.from(allPlaceholders).map(el => el.getAttribute('data-id')));
       }
     });
   }
@@ -213,7 +229,7 @@ export abstract class Block {
     });
   }
 
-  private _addEvents() {
+  public _addEvents() {
     const { events = {} } = this.props;
     Object.keys(events).forEach(eventName => {
       if (events[eventName] !== undefined) {
@@ -223,7 +239,7 @@ export abstract class Block {
   }
 
 
-  private _removeEvents() {
+  public _removeEvents() {
     const { events = {} } = this.props;
     Object.keys(events).forEach(eventName => {
       if (events[eventName] !== undefined) {

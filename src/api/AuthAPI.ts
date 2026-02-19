@@ -181,13 +181,13 @@ export class AuthAPI {
       const response = await client.get<ProfileResponse | ErrorResponse>('/auth/user');
 
       if (!response.ok) {
-        return null;
+        throw new Error('Not authenticated');
       }
 
       return response.data as ProfileResponse;
     } catch (error) {
       console.error('Error getting current user:', error);
-      return null;
+      throw error;
     }
   }
   //   const response = await apiClient.get<ProfileResponse | ErrorResponse>(

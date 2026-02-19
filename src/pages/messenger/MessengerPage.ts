@@ -92,8 +92,6 @@ const MOCK_MESSAGES: Record<number, Message[]> = {
 };
 
 export class MessengerPage extends Block {
-//   private validationTimeout?: NodeJS.Timeout;
-//   private isLoading: boolean = false;
   private chatList: ChatList;
   private chatHeader: ChatHeader;
   private messageList: MessageList;
@@ -369,6 +367,18 @@ export class MessengerPage extends Block {
     }
   }
 
+  private async loadChats(): Promise<void> {
+    try {
+      // Здесь будет загрузка реальных чатов через API
+      console.log('📥 Loading chats from API');
+      // const chats = await ChatsAPI.getChats();
+      // this.chats = chats;
+      // this.updateChatList();
+    } catch (error) {
+      console.error('❌ Failed to load chats:', error);
+    }
+  }
+
   public override render(): string {
     const template = compile(templateSource);
     const children = this.getChildren();
@@ -404,7 +414,7 @@ export class MessengerPage extends Block {
 
   protected override componentDidMount(): void {
     console.log('🚀 MessengerPage mounted');
-    
+    this.loadChats();
     // Добавляем обработчик для закрытия dropdown при клике вне
     document.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;

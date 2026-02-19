@@ -100,6 +100,8 @@ export class Router {
   }
 
   go(pathname: string): void {
+    console.log(`🔄 Router.go() to ${pathname}`);
+    console.log(`📍 Current path: ${window.location.pathname}`);
     if (this._isNavigating) {
       console.log('⚠️ Already navigating, skipping');
       return;

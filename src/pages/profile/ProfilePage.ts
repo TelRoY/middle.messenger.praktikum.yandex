@@ -1,16 +1,10 @@
 import { Block } from '../../core/Block';
 import { Validator } from '../../utils/Validator';
-import { AuthAPI } from '../../api/AuthAPI';
-
-interface ProfileData {
-  first_name: string;
-  second_name: string;
-  display_name: string;
-  login: string;
-  email: string;
-  phone: string;
-  avatar: string;
-}
+import { AuthAPI, ProfileResponse } from '../../api/AuthAPI';
+import { compile } from 'handlebars';
+import templateSource from './profile.hbs';
+import { router } from '../../main';
+import { ProfileForm } from '../../components/forms/ProfileForm';
 
 interface FormData {
   first_name: string;
@@ -19,135 +13,106 @@ interface FormData {
   login: string;
   email: string;
   phone: string;
-  oldPassword?: string | undefined;
-  newPassword?: string | undefined;
-}
-
-interface UpdateProfileData {
-  first_name: string;
-  second_name: string;
-  display_name: string;
-  login: string;
-  email: string;
-  phone: string;
+  oldPassword?: string;
+  newPassword?: string;
 }
 
 export class ProfilePage extends Block {
   private isEditMode: boolean = false;
-  private originalData: ProfileData;
   private validationTimeouts: Record<string, NodeJS.Timeout> = {};
   private isLoading: boolean = false;
+  private profileForm: ProfileForm | null = null;
+  private userData: ProfileResponse | null = null;
+  private isInitialized: boolean = false;
 
   constructor() {
-    super('div', {
-      events: {
-        submit: (e: Event) => {
-          e.preventDefault();
-          this.onSubmit();
-        },
-        change: (e: Event) => {
-          const target = e.target as HTMLInputElement;
-          if (target.id === 'avatar-input') {
-            this.handleAvatarChange(target);
-          }
-        },
-        click: (e: Event) => {
-          const target = e.target as HTMLElement;
-          
-          // Кнопка "На главную"
-          if (target.id === 'back-home' || target.closest('#back-home')) {
-            window.history.pushState({}, '', '/');
-            window.dispatchEvent(new PopStateEvent('popstate'));
-          }
+    const tempForm = new ProfileForm({
+      id: 'profile-form',
+      className: 'profile-form',
+      isEditMode: false,
+      firstName: '',
+      secondName: '',
+      displayName: '',
+      login: '',
+      email: '',
+      phone: '',
+      avatarInitials: '--',
+      fullName: '',
+      onSubmit: () => this.onSubmit(),
+      onCancel: () => this.toggleEditMode(),
+      onAvatarChange: (file: File) => this.handleAvatarChange(file)
+    });
 
-          // Кнопка "Отмена" (в режиме редактирования)
-        if (target.id === 'cancel-edit' || target.closest('#cancel-edit')) {
-          this.toggleEditMode();
-        }
-          
-          // Кнопка загрузки аватара
-          if (target.classList.contains('avatar-upload-btn') || target.closest('.avatar-upload-btn')) {
-            e.preventDefault();
-            const content = this.getContent();
-            const fileInput = content.querySelector('#avatar-input') as HTMLInputElement;
-            if (fileInput) {
-              fileInput.click();
-            }
-          }
-        },
-        blur: (e: Event) => {
-          const target = e.target as HTMLInputElement;
-          if (target.classList.contains('form-input') && this.isEditMode) {
-            this.validateOnBlur(target.name, target.value);
-          }
-        },
-        focus: (e: Event) => {
-          const target = e.target as HTMLInputElement;
-          if (target.classList.contains('form-input') && this.isEditMode) {
-            const formGroup = target.closest('.form-group');
-            const error = formGroup?.querySelector('.field-error');
-            if (error) {
-              error.remove();
-              target.classList.remove('has-error');
-            }
-            target.classList.remove('is-valid');
-          }
-        },
+    super('div', {
+      children: {
+        profileForm: tempForm
       }
     });
-
-    // Инициализируем данные профиля
-    this.originalData = this.getDefaultData();
-    this.loadProfileData().then(data => {
-      this.originalData = data;
-      this.forceUpdate();
-    });
+    console.log('🔧 ProfilePage constructor');
+    this.initialize();
   }
 
-  private async loadProfileData(): Promise<ProfileData> {
-    try {
-      // Загружаем данные из localStorage или с сервера
-      const savedData = localStorage.getItem('user');
-      if (savedData) {
-        return JSON.parse(savedData);
-      }
-      const userData = await AuthAPI.getCurrentUser();
-      const profileData: ProfileData = {
-        first_name: userData.first_name || '',
-        second_name: userData.second_name || '',
-        display_name: userData.display_name || '',
-        login: userData.login || '',
-        email: userData.email || '',
-        phone: userData.phone || '',
-        avatar: userData.avatar || ''
-      };
-      localStorage.setItem('user', JSON.stringify(profileData));
-      return profileData;
+  private async initialize(): Promise<void> {
+    console.log('🔄 ProfilePage initialize started');
+    await this.loadUserData();
+    console.log('✅ User data loaded:', this.userData);
+    this.updateProfileForm();
+    this.isInitialized = true;
+    console.log('✅ Initialize completed');
+  }
 
-    } catch (error) {
-      console.error('Error loading profile data:', error);
-      return this.getDefaultData();
+  private updateProfileForm(): void {
+    if (!this.userData) return;
+
+    const firstName = this.userData.first_name || '';
+    const secondName = this.userData.second_name || '';
+    const displayName = this.userData.display_name || '';
+    const fullName = `${firstName} ${secondName}`;
+    const avatarInitials = (firstName[0] || 'И') + (secondName[0] || 'И');
+
+    console.log('📝 Updating ProfileForm with data:', {
+      firstName,
+      secondName,
+      displayName,
+      login: this.userData.login,
+      email: this.userData.email,
+      phone: this.userData.phone
+    });
+
+    const children = this.getChildren();
+    const profileForm = children['profileForm'] as ProfileForm;
+
+    if (profileForm) {
+      console.log('✅ Found existing ProfileForm, updating...');
+      // Обновляем данные существующей формы
+      profileForm.updateData({
+        isEditMode: this.isEditMode,
+        firstName,
+        secondName,
+        displayName,
+        login: this.userData.login || '',
+        email: this.userData.email || '',
+        phone: this.userData.phone || '',
+        avatar: this.userData.avatar,
+        avatarInitials,
+        fullName,
+      });
+      console.log('✅ ProfileForm updated');
+    } else {
+      console.log('❌ ProfileForm not found in children');
     }
   }
 
-  private getDefaultData(): ProfileData {
-    return {
-      first_name: 'Иван',
-      second_name: 'Иванов',
-      display_name: 'ivan95',
-      login: 'ivanivanov',
-      email: 'ivanivanov@yandex.ru',
-      phone: '+7 (800) 555-35-35',
-      avatar: ''
-    };
-  }
-
-  private saveProfileData(data: ProfileData): void {
+  private async loadUserData(): Promise<void> {
     try {
-      localStorage.setItem('userProfile', JSON.stringify(data));
-      this.originalData = { ...data };
+      this.userData = await AuthAPI.getCurrentUser();
+      if (!this.userData) {
+        console.log('❌ No user data, redirecting to login');
+        router.go('/');
+      }
     } catch (error) {
-      console.error('Error saving profile data:', error);
+      console.error('Error loading profile data:', error);
+      router.go('/');
     }
   }
 
@@ -155,161 +120,128 @@ export class ProfilePage extends Block {
     if (this.isEditMode) {
       this.saveProfile();
     } else {
-      this.toggleEditMode()
+      this.toggleEditMode();
     }
   }
 
   private toggleEditMode(): void {
     this.isEditMode = !this.isEditMode;
+    this.updateProfileForm();
     this.forceUpdate();
     if (this.isEditMode) {
       this.setupEditMode();
-    } else {
-      this.setupViewMode();
     }
   }
 
   private setupEditMode(): void {
-    const  content = this.getContent();
-    const firstInput = content.querySelector('input') as HTMLInputElement;
-    if (firstInput) {
-      setTimeout(() => firstInput.focus(), 100);
-    }
+    setTimeout(() => {
+      const content = this.getContent();
+      const firstInput = content.querySelector('input') as HTMLInputElement;
+      if (firstInput) {
+        firstInput.focus();
+      }
+    }, 100);
   }
-
-  private setupViewMode(): void {
-    const content = this.getContent();
-    const oldPasswordInput = content.querySelector('#oldPassword') as HTMLInputElement;
-    const newPasswordInput = content.querySelector('#newdPassword') as HTMLInputElement;
-    if (oldPasswordInput) oldPasswordInput.value = '';
-    if (newPasswordInput) newPasswordInput.value = '';
-  }
-
 
   private async saveProfile(): Promise<void> {
-    if (this.isLoading) return;
-    const content = this.getContent();
-    const form = content.querySelector('#profile-form') as HTMLFormElement;
+    if (this.isLoading || !this.profileForm) return;
+
+    const data = this.profileForm.getValues() as unknown as FormData;
+    const isChangingPassword = data.oldPassword || data.newPassword;
+
+    // Валидация
+    const errors = Validator.validateForm(data, 'profile');
     
-    if (form) {
-      const formData = new FormData(form);
-      const data: FormData = {
-        first_name: (formData.get('first_name') as string || '').trim(),
-        second_name: (formData.get('second_name') as string || '').trim(),
-        display_name: (formData.get('display_name') as string || '').trim(),
-        login: (formData.get('login') as string || '').trim(),
-        email: (formData.get('email') as string || '').trim(),
-        phone: (formData.get('phone') as string || '').trim(),
-        oldPassword: (formData.get('oldPassword') as string || '').trim() || undefined,
-        newPassword: (formData.get('newPassword') as string || '').trim() || undefined
+    if (Object.keys(errors).length > 0) {
+      this.showAllErrors(errors);
+      const firstErrorField = Object.keys(errors)[0];
+      const input = this.getContent().querySelector(`[name="${firstErrorField}"]`) as HTMLInputElement;
+      if (input) input.focus();
+      return;
+    }
+
+    try {
+      this.setLoading(true);
+      
+      const updateData = {
+        first_name: data.first_name,
+        second_name: data.second_name,
+        display_name: data.display_name,
+        login: data.login,
+        email: data.email,
+        phone: data.phone
       };
 
-      const isChangingPassword = data['oldPassword'] || data['newPassword'];
+      const updatedUser = await AuthAPI.updateProfile(updateData);
+      this.userData = updatedUser;
 
-      // ВАЛИДАЦИЯ НА SUBMIT
-      const errors = Validator.validateForm(data, 'profile');
-      
-      if (Object.keys(errors).length === 0) {
-        console.log('Profile data to save:', data);
+      if (isChangingPassword && data.oldPassword && data.newPassword) {
         try {
-          this.setLoading(true);
-          
-          const updateData: UpdateProfileData  = {
-            first_name: data.first_name,
-            second_name: data.second_name,
-            display_name: data.display_name,
-            login: data.login,
-            email: data.email,
-            phone: data.phone
-          };
-
-          const updatedUser = await AuthAPI.updateProfile(updateData);
-          const profileData: ProfileData = {
-            first_name: updatedUser.first_name || '',
-            second_name: updatedUser.second_name || '',
-            display_name: updatedUser.display_name || '',
-            login: updatedUser.login || '',
-            email: updatedUser.email || '',
-            phone: updatedUser.phone || '',
-            avatar: updatedUser.avatar || ''
-          };
-          this.originalData = profileData;
-
-          if (isChangingPassword && data.oldPassword && data.newPassword) {
-            try {
-              await AuthAPI.changePassword(data.oldPassword, data.newPassword);
-              this.showMessage('Профиль и пароль успешно обновлены', 'success');
-            } catch (passwordError) {
-              console.error('Password change failed:', passwordError);
-              this.showMessage('Профиль обновлен, но не удалось сменить пароль', 'error');
-            }
-          } else {
-            this.showMessage('Профиль успешно обновлен!', 'success');
-          }
-
-          this.saveProfileData(profileData);
-          this.updateProfileDisplay(profileData);
-          this.toggleEditMode();
-        } catch (error) {
-          console.error('Profile update error:', error);
-          this.showMessage('Ошибка обновления профиля', 'error');
-          
-        } finally {
-          this.setLoading(false);
+          await AuthAPI.changePassword(data.oldPassword, data.newPassword);
+          this.showMessage('Профиль и пароль успешно обновлены', 'success');
+        } catch {
+          this.showMessage('Профиль обновлен, но не удалось сменить пароль', 'error');
         }
       } else {
-        this.showAllErrors(errors);
-        
-        const firstErrorField = Object.keys(errors)[0];
-        const firstInput = content.querySelector(`[name="${firstErrorField}"]`) as HTMLInputElement;
-        if (firstInput) {
-          firstInput.focus();
-        }
+        this.showMessage('Профиль успешно обновлен!', 'success');
       }
+
+      this.toggleEditMode();
+      
+    } catch (error) {
+      console.error('Profile update error:', error);
+      this.showMessage('Ошибка обновления профиля', 'error');
+    } finally {
+      this.setLoading(false);
     }
   }
 
-  // Валидация на blur
+  private async handleAvatarChange(file: File): Promise<void> {
+    if (!file.type.startsWith('image/')) {
+      this.showMessage('Пожалуйста, выберите изображение', 'error');
+      return;
+    }
+    
+    if (file.size > 2 * 1024 * 1024) {
+      this.showMessage('Изображение должно быть меньше 2MB', 'error');
+      return;
+    }
+    
+    try {
+      this.setLoading(true);
+      const updatedUser = await AuthAPI.updateAvatar(file);
+      this.userData = updatedUser;
+
+      const children = this.getChildren();
+      const profileForm = children['profileForm'] as ProfileForm;
+      if (profileForm) {
+        profileForm.updateAvatar(updatedUser.avatar);
+      }
+      this.showMessage('Аватар обновлен!', 'success');
+    } catch (error) {
+      console.error('Avatar upload error:', error);
+      this.showMessage('Ошибка при загрузке аватара', 'error');
+    } finally {
+      this.setLoading(false);
+    }
+  }
+
   private validateOnBlur(fieldName: string, value: string): void {
-    // Особенная логика для полей пароля
     if (fieldName === 'oldPassword' || fieldName === 'newPassword') {
       const content = this.getContent();
       const oldPassword = (content.querySelector('#oldPassword') as HTMLInputElement)?.value || '';
       const newPassword = (content.querySelector('#newPassword') as HTMLInputElement)?.value || '';
       
-      // Если оба поля пустые - не валидируем
-      if (!oldPassword && !newPassword) {
-        return;
-      }
+      if (!oldPassword && !newPassword) return;
     }
     
-    // Очищаем предыдущий таймер для этого поля
     if (this.validationTimeouts[fieldName]) {
       clearTimeout(this.validationTimeouts[fieldName]);
     }
     
     this.validationTimeouts[fieldName] = setTimeout(() => {
       const error = Validator.validateField(fieldName, value, 'profile');
-      
-      const content = this.getContent();
-      const input = content.querySelector(`[name="${fieldName}"]`);
-      const formGroup = input?.closest('.form-group');
-      
-      if (formGroup) {
-        const oldError = formGroup.querySelector('.field-error');
-        if (oldError) {
-          oldError.remove();
-        }
-        
-        input?.classList.remove('has-error');
-        input?.classList.remove('is-valid');
-        
-        if (error) {
-          this.showFieldError(fieldName, error);
-        } else if (value.trim()) {
-          input?.classList.add('is-valid');
-        }
-      }
+      this.showFieldError(fieldName, error || '');
     }, 300);
   }
 
@@ -318,19 +250,24 @@ export class ProfilePage extends Block {
     const input = content.querySelector(`[name="${fieldName}"]`);
     const formGroup = input?.closest('.form-group');
     
-    if (formGroup && input) {
+    if (formGroup && input && message) {
+      const oldError = formGroup.querySelector('.field-error');
+      if (oldError) oldError.remove();
+      
+      input.classList.add('has-error');
+      
       const errorDiv = document.createElement('div');
       errorDiv.className = 'field-error';
       errorDiv.textContent = message;
-      
       formGroup.appendChild(errorDiv);
-      input.classList.add('has-error');
+    } else if (formGroup && input) {
+      input.classList.remove('has-error');
+      input.classList.add('is-valid');
     }
   }
 
   private showAllErrors(errors: Record<string, string>): void {
     const content = this.getContent();
-    
     content.querySelectorAll('.field-error').forEach(el => el.remove());
     content.querySelectorAll('.has-error, .is-valid').forEach(el => {
       el.classList.remove('has-error', 'is-valid');
@@ -341,345 +278,122 @@ export class ProfilePage extends Block {
     });
   }
 
-  private forceUpdate(): void {
-    const content = this.getContent();
-    content.innerHTML = this.render();
-  }
-
-  private async handleAvatarChange(input: HTMLInputElement): Promise<void> {
-    if (input.files && input.files[0]) {
-      const file = input.files[0];
-      
-      // Проверяем тип файла
-      if (!file.type.startsWith('image/')) {
-        this.showMessage('Пожалуйста, выберите изображение', 'error');
-        return;
-      }
-      
-      // Проверяем размер файла (максимум 2MB)
-      if (file.size > 2 * 1024 * 1024) {
-        this.showMessage('Изображение должно быть меньше 2MB', 'error');
-        return;
-      }
-      
-       try {
-        this.setLoading(true);
-        
-        const updatedUser = await AuthAPI.updateAvatar(file);
-        const profileData: ProfileData = {
-          first_name: updatedUser.first_name || '',
-          second_name: updatedUser.second_name || '',
-          display_name: updatedUser.display_name || '',
-          login: updatedUser.login || '',
-          email: updatedUser.email || '',
-          phone: updatedUser.phone || '',
-          avatar: updatedUser.avatar || ''
-        };
-        
-        this.saveProfileData(profileData);
-        
-        const avatarImg = this.getContent().querySelector('.avatar-img') as HTMLImageElement;
-        const avatarPlaceholder = this.getContent().querySelector('.avatar-placeholder') as HTMLElement;
-        
-        if (avatarImg) {
-          avatarImg.src = updatedUser.avatar;
-          avatarImg.style.display = 'block';
-          if (avatarPlaceholder) {
-            avatarPlaceholder.style.display = 'none';
-          }
-        }
-        
-        this.showMessage('Аватар обновлен!', 'success');
-        
-      } catch (error) {
-        console.error('Avatar upload error:', error);
-        this.showMessage('Ошибка при загрузке аватара', 'error');
-        
-      } finally {
-        this.setLoading(false);
-      }
-    }
-  }
-
-  private updateProfileDisplay(data: ProfileData): void {
-    const content = this.getContent();
-    
-    // Обновляем имя в заголовке
-    const profileName = content.querySelector('.profile-name');
-    if (profileName) {
-        const firstName = data['first_name'] || 'Иван';
-        const secondName = data['second_name'] || 'Иванов';
-        profileName.textContent = `${firstName} ${secondName}`;
-    }
-    
-    // Обновляем никнейм
-    const profileDisplayName = content.querySelector('.profile-display-name');
-    if (profileDisplayName) {
-        const displayName = data['display_name'] || 'ivan95';
-        profileDisplayName.textContent = `@${displayName}`;
-    }
-    
-    // Обновляем поля формы
-    const fields: (keyof ProfileData)[] = ['first_name', 'second_name', 'display_name', 'login', 'email', 'phone'];
-    fields.forEach(field => {
-      const input = content.querySelector(`[name="${field}"]`) as HTMLInputElement;
-      if (input) {
-        input.value = data[field] || '';
-      }
-    });
-    
-    // Обновляем аватар
-    if (data.avatar) {
-      const avatarImg = content.querySelector('.avatar-img') as HTMLImageElement;
-      const avatarPlaceholder = content.querySelector('.avatar-placeholder') as HTMLElement;
-      
-      if (avatarImg) {
-        avatarImg.src = data.avatar;
-        avatarImg.style.display = 'block';
-        if (avatarPlaceholder) {
-          avatarPlaceholder.style.display = 'none';
-        }
-      }
-    }
-  }
-
   private showMessage(text: string, type: 'success' | 'error'): void {
     const content = this.getContent();
-    
-    // Удаляем предыдущее сообщение
     const oldMessage = content.querySelector('.profile-message');
-    if (oldMessage) {
-      oldMessage.remove();
-    }
+    if (oldMessage) oldMessage.remove();
     
-    // Создаем новое сообщение
     const messageDiv = document.createElement('div');
     messageDiv.className = `profile-message profile-message--${type}`;
     messageDiv.textContent = text;
-    messageDiv.style.padding = '12px';
-    messageDiv.style.borderRadius = '8px';
-    messageDiv.style.marginBottom = '16px';
-    messageDiv.style.textAlign = 'center';
-    messageDiv.style.fontWeight = '500';
+    messageDiv.style.cssText = `
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      text-align: center;
+      font-weight: 500;
+      ${type === 'success' 
+        ? 'background-color: rgba(46, 204, 113, 0.1); color: #2ecc71; border: 1px solid #2ecc71;'
+        : 'background-color: rgba(255, 71, 87, 0.1); color: #ff4757; border: 1px solid #ff4757;'
+      }
+    `;
     
-    if (type === 'success') {
-      messageDiv.style.backgroundColor = 'rgba(46, 204, 113, 0.1)';
-      messageDiv.style.color = '#2ecc71';
-      messageDiv.style.border = '1px solid #2ecc71';
-    } else {
-      messageDiv.style.backgroundColor = 'rgba(255, 71, 87, 0.1)';
-      messageDiv.style.color = '#ff4757';
-      messageDiv.style.border = '1px solid #ff4757';
-    }
-    
-    // Вставляем сообщение перед формой
-    const form = content.querySelector('#profile-form');
+    const form = content.querySelector('form');
     if (form) {
       form.parentNode?.insertBefore(messageDiv, form);
     }
     
-    // Автоматически скрываем сообщение через 5 секунд
-    setTimeout(() => {
-      if (messageDiv.parentNode) {
-        messageDiv.remove();
-      }
-    }, 5000);
+    setTimeout(() => messageDiv.remove(), 5000);
   }
 
   private setLoading(loading: boolean): void {
     this.isLoading = loading;
-    const content = this.getContent();
-    const submitButton = content.querySelector('button[type="submit"]') as HTMLButtonElement;
-    
-    if (submitButton) {
-      if (loading) {
-        submitButton.disabled = true;
-        submitButton.textContent = this.isEditMode ? 'Сохранение...' : 'Загрузка...';
-        submitButton.classList.add('loading');
-      } else {
-        submitButton.disabled = false;
-        submitButton.textContent = this.isEditMode ? 'Сохранить изменения' : 'Редактировать профиль';
-        submitButton.classList.remove('loading');
-      }
+    if (this.profileForm) {
+      this.profileForm.setLoading(loading);
     }
   }
 
-  protected override render(): string {
-    const data = this.originalData || this.getDefaultData();
-    const { 
-      first_name = 'Иван', 
-      second_name = 'Иванов', 
-      display_name = 'ivan95',
-      login = 'ivanivanov',
-      email = 'ivanivanov@yandex.ru',
-      phone = '+7 (800) 555-35-35',
-      avatar = ''
-    } = data;
+  private forceUpdate(): void {
+    console.log('🔄 Force update called, profileForm exists:', !!this.profileForm);
+    console.log('📋 Current children before update:', Object.keys(this.getChildren()));
+    const content = this.getContent();
+    if (content) {
+      if (this.profileForm) {
+        // Убеждаемся, что profileForm есть в children
+        this.setProps({
+          children: {
+            profileForm: this.profileForm
+          }
+        });
+        console.log('📋 Children after setProps:', Object.keys(this.getChildren()));
+      }
+      content.innerHTML = this.render();
+      console.log('📋 Children after setting innerHTML:', Object.keys(this.getChildren()));
+      this._replacePlaceholders();
+      this._addEvents();
+    }
+  }
 
-    const isAvatarSet = !!avatar;
-    const firstNameInitial = first_name && first_name.length > 0 ? first_name[0] : 'И';
-    const secondNameInitial = second_name && second_name.length > 0 ? second_name[0] : 'И';
+  public override render(): string {
+    console.log('🎨 ProfilePage render, isInitialized:', this.isInitialized, 'profileForm:', !!this.profileForm);
+    const template = compile(templateSource);
+    const children = this.getChildren();
+    const context: Record<string, string> = {};
+    
+    Object.keys(children).forEach(key => {
+      context[key] = `<div data-id="${key}"></div>`;
+    });
 
-    return `
-      <main class="container">
-        <div class="header">
-          <div class="avatar-section">
-            <div class="avatar-container">
-              ${isAvatarSet ? 
-                `<img src="${avatar}" alt="Аватар" class="avatar-img">` : 
-                `<div class="avatar-placeholder">${firstNameInitial}${secondNameInitial}</div>`
-              }
-              ${this.isEditMode ? `
-                <label for="avatar-input" class="avatar-upload-btn">
-                  <span>Изменить фото</span>
-                  <input type="file" id="avatar-input" name="avatar" accept="image/*" style="display: none;">
-                </label>
-              ` : ''}
-            </div>
-          </div>
-          
-          <div class="profile-info">
-            <h1 class="profile-name">${first_name} ${second_name}</h1>
-            <p class="profile-display-name">@${display_name}</p>
-          </div>
-        </div>
+    console.log('📝 Rendering with context keys:', Object.keys(context));
+    console.log('📝 Children keys from getChildren():', Object.keys(children));
+    const result = template(context);
+    console.log('✅ Render result:', result);
 
-        <form id="profile-form" class="profile-form">
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="first_name" class="form-label">Имя</label>
-              <input
-                type="text"
-                id="first_name"
-                name="first_name"
-                class="form-input ${this.isEditMode ? '' : 'form-input--readonly'}"
-                value="${first_name}"
-                placeholder="Иван"
-                ${this.isEditMode ? '' : 'readonly'}
-              />
-            </div>
+    return result;
+  }
 
-            <div class="form-group">
-              <label for="second_name" class="form-label">Фамилия</label>
-              <input
-                type="text"
-                id="second_name"
-                name="second_name"
-                class="form-input ${this.isEditMode ? '' : 'form-input--readonly'}"
-                value="${second_name}"
-                placeholder="Иванов"
-                ${this.isEditMode ? '' : 'readonly'}
-              />
-            </div>
+  public override show(): void {
+    console.log('👁️ Showing ProfilePage');
+    const content = this.getContent();
+    if (content) {
+      content.style.display = 'block';
+    }
+  }
 
-            <div class="form-group">
-              <label for="display_name" class="form-label">Никнэйм</label>
-              <input
-                type="text"
-                id="display_name"
-                name="display_name"
-                class="form-input ${this.isEditMode ? '' : 'form-input--readonly'}"
-                value="${display_name}"
-                placeholder="ivan95"
-                ${this.isEditMode ? '' : 'readonly'}
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="login" class="form-label">Логин</label>
-              <input
-                type="text"
-                id="login"
-                name="login"
-                class="form-input ${this.isEditMode ? '' : 'form-input--readonly'}"
-                value="${login}"
-                placeholder="ivanivanov"
-                ${this.isEditMode ? '' : 'readonly'}
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="email" class="form-label">Электронная почта</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                class="form-input ${this.isEditMode ? '' : 'form-input--readonly'}"
-                value="${email}"
-                placeholder="ivanivanov@yandex.ru"
-                ${this.isEditMode ? '' : 'readonly'}
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="phone" class="form-label">Телефон</label>
-              <input
-                type="tel"
-                id="phone"
-                name="phone"
-                class="form-input ${this.isEditMode ? '' : 'form-input--readonly'}"
-                value="${phone}"
-                placeholder="+7 (800) 555-35-35"
-                ${this.isEditMode ? '' : 'readonly'}
-              />
-            </div>
-
-            ${this.isEditMode ? `
-              <div class="form-group password-section">
-                <h3 class="section-title">Смена пароля</h3>
-                
-                <div class="form-group">
-                  <label for="oldPassword" class="form-label">Старый пароль</label>
-                  <input
-                    type="password"
-                    id="oldPassword"
-                    name="oldPassword"
-                    class="form-input"
-                    placeholder="Введите старый пароль"
-                  />
-                </div>
-
-                <div class="form-group">
-                  <label for="newPassword" class="form-label">Новый пароль</label>
-                  <input
-                    type="password"
-                    id="newPassword"
-                    name="newPassword"
-                    class="form-input"
-                    placeholder="Введите новый пароль"
-                    minlength="6"
-                  />
-
-                </div>
-              </div>
-            ` : ''}
-          </div>
-
-          <div class="profile-actions">
-            <button type="submit" class="component-button ${this.isEditMode ? 'component-button--primary' : 'component-button--secondary'}">
-              ${this.isEditMode ? 'Сохранить изменения' : 'Редактировать профиль'}
-            </button>
-            
-            ${this.isEditMode ? `
-              <button type="button" id="cancel-edit" class="component-button component-button--secondary">
-                Отмена
-              </button>
-            ` : ''}
-            
-            <button type="button" id="back-home" class="component-button component-button--link">
-              На главную
-            </button>
-          </div>
-        </form>
-      </main>
-    `;
+  public override hide(): void {
+    console.log('👋 Hiding ProfilePage');
+    const content = this.getContent();
+    if (content) {
+      content.style.display = 'none';
+    }
   }
 
   protected override componentDidMount(): void {
-    const content = this.getContent();    
-    const firstInput = content.querySelector('input') as HTMLInputElement;
-    if (firstInput && this.isEditMode) {
-      setTimeout(() => firstInput.focus(), 100);
+    console.log('🚀 ProfilePage mounted');
+    
+    // Добавляем обработчики для валидации
+    const content = this.getContent();
+    const inputs = content.querySelectorAll('input');
+    inputs.forEach(input => {
+      input.addEventListener('blur', (e) => {
+        const target = e.target as HTMLInputElement;
+        this.validateOnBlur(target.name, target.value);
+      });
+      input.addEventListener('focus', () => {
+        const formGroup = input.closest('.form-group');
+        const error = formGroup?.querySelector('.field-error');
+        if (error) error.remove();
+        input.classList.remove('has-error', 'is-valid');
+      });
+    });
+
+    // Обработчик для кнопки "На главную"
+    const backButton = content.querySelector('#back-home');
+    if (backButton) {
+      backButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        router.go('/messenger');
+      });
     }
   }
 }

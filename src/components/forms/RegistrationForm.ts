@@ -21,7 +21,6 @@ export class RegistrationForm extends Block {
     super('form', {
       ...restProps,
       children,
-      // ...props,
       events
     });
     console.log('✅ RegistrationForm constructor finished');
@@ -65,7 +64,7 @@ export class RegistrationForm extends Block {
     const result = template(context);
     console.log('📝 RegistrationForm template result length:', result.length);
     console.log('📝 RegistrationForm template result preview:', result.substring(0, 200) + '...');
-    console.log('📝 RegistrationForm template result full:', result); // Добавляем полный вывод
+    console.log('📝 RegistrationForm template result full:', result);
   
     return result;
   }
