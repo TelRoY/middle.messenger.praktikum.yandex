@@ -140,18 +140,22 @@ export class Router {
 
     if (!route) {
       console.log(`❌ No route for ${cleanPathname}`);
-      this._isNavigating = false;
+      this.go('/404.html');
       return;
     }
 
-    if (this._currentRoute) {
-      console.log('👋 Leaving current route');
-      this._currentRoute.leave();
+    try {
+      if (this._currentRoute) {
+        console.log('👋 Leaving current route');
+        this._currentRoute.leave();
+      }
+  
+      this._currentRoute = route;
+      route.render();
+    } catch (error) {
+      console.error('❌ Error rendering route:', error);
+      this.go('/500.html');
     }
-
-    this._currentRoute = route;
-    console.log('🎯 Rendering new route');
-    route.render();
 
     setTimeout(() => {
       this._isNavigating = false;
