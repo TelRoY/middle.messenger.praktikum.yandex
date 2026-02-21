@@ -38,16 +38,51 @@ export class ProfilePage extends Block {
       phone: '',
       avatarInitials: '--',
       fullName: '',
-      onSubmit: () => this.onSubmit(),
-      onCancel: () => this.toggleEditMode(),
-      onAvatarChange: (file: File) => this.handleAvatarChange(file)
+      onSubmit: () => {
+        console.log('📞 ProfileForm onSubmit callback called');
+        this.onSubmit();
+      },
+      onCancel: () => {
+        console.log('📞 ProfileForm onCancel callback called');
+        this.toggleEditMode();
+      },
+      onAvatarChange: (file: File) => {
+        console.log('📞 ProfileForm onAvatarChange callback called', file.name);
+        this.handleAvatarChange(file);
+      }
     });
+
+    console.log('📦 tempForm created:', !!tempForm);
 
     super('div', {
       children: {
         profileForm: tempForm
+      }, 
+      events: {
+        click: (e: Event) => {
+          const target = e.target as HTMLElement;
+          console.log('🖱️ Click on:', target.id, target.className);
+
+          if (target.id === 'back-home') {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🏠 Back home clicked from constructor');
+            router.go('/messenger');
+          }
+
+          if (target.classList.contains('component-button--link')) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🏠 Back home clicked by class');
+            router.go('/messenger');
+          }
+        }
       }
     });
+
+    this.profileForm = tempForm;
+    console.log('✅ this.profileForm set:', !!this.profileForm);
+
     console.log('🔧 ProfilePage constructor');
     this.initialize();
   }
@@ -79,13 +114,23 @@ export class ProfilePage extends Block {
       phone: this.userData.phone
     });
 
-    const children = this.getChildren();
-    const profileForm = children['profileForm'] as ProfileForm;
+    // const children = this.getChildren();
+    // const profileForm = children['profileForm'] as ProfileForm;
 
-    if (profileForm) {
+    if (!this.profileForm) {
+      console.log('⚠️ this.profileForm is null, trying to get from children');
+      const children = this.getChildren();
+      const formFromChildren = children['profileForm'] as ProfileForm;
+      if (formFromChildren) {
+        console.log('✅ Found form in children, saving reference');
+        this.profileForm = formFromChildren;
+      }
+    }
+
+    if (this.profileForm) {
       console.log('✅ Found existing ProfileForm, updating...');
       // Обновляем данные существующей формы
-      profileForm.updateData({
+      this.profileForm.updateData({
         isEditMode: this.isEditMode,
         firstName,
         secondName,
@@ -117,6 +162,7 @@ export class ProfilePage extends Block {
   }
 
   private onSubmit(): void {
+    console.log('📝 onSubmit called, isEditMode:', this.isEditMode);
     if (this.isEditMode) {
       this.saveProfile();
     } else {
@@ -125,9 +171,22 @@ export class ProfilePage extends Block {
   }
 
   private toggleEditMode(): void {
+    console.log('🔄 toggleEditMode called, current mode:', this.isEditMode);
     this.isEditMode = !this.isEditMode;
-    this.updateProfileForm();
-    this.forceUpdate();
+    console.log('🔄 New mode:', this.isEditMode);
+
+    const children = this.getChildren();
+    const profileForm = children['profileForm'] as ProfileForm;
+
+    if (profileForm) {
+      console.log('✅ Updating ProfileForm with isEditMode:', this.isEditMode);
+      profileForm.updateData({ isEditMode: this.isEditMode });
+    } else {
+      console.log('❌ ProfileForm not found in children');
+    }
+
+    // this.updateProfileForm();
+    // this.forceUpdate();
     if (this.isEditMode) {
       this.setupEditMode();
     }
@@ -138,21 +197,44 @@ export class ProfilePage extends Block {
       const content = this.getContent();
       const firstInput = content.querySelector('input') as HTMLInputElement;
       if (firstInput) {
+        console.log('🎯 Focusing first input');
         firstInput.focus();
       }
     }, 100);
   }
 
   private async saveProfile(): Promise<void> {
-    if (this.isLoading || !this.profileForm) return;
+    console.log('💾 saveProfile called, current isLoading:', this.isLoading);
+    console.log('📋 this.profileForm reference:', !!this.profileForm);
+
+    if (!this.profileForm) {
+      console.log('⏳ No form reference, checking children...');
+      const children = this.getChildren();
+      console.log('👥 Children keys:', Object.keys(children));
+      const formFromChildren = children['profileForm'] as ProfileForm;
+      if (formFromChildren) {
+        console.log('✅ Found form in children, using it');
+        this.profileForm = formFromChildren;
+      } else {
+        console.log('❌ Form not found in children either');
+        return;
+      }
+      return;
+    }
 
     const data = this.profileForm.getValues() as unknown as FormData;
+    console.log('📋 Raw form data:', data);
+
     const isChangingPassword = data.oldPassword || data.newPassword;
+    console.log('🔑 Changing password:', isChangingPassword);
 
     // Валидация
+    console.log('🔍 Running validation...');
     const errors = Validator.validateForm(data, 'profile');
+    console.log('✅ Validation errors:', errors);
     
     if (Object.keys(errors).length > 0) {
+      console.log('❌ Validation failed');
       this.showAllErrors(errors);
       const firstErrorField = Object.keys(errors)[0];
       const input = this.getContent().querySelector(`[name="${firstErrorField}"]`) as HTMLInputElement;
@@ -161,6 +243,7 @@ export class ProfilePage extends Block {
     }
 
     try {
+      console.log('🔄 Setting loading state...');
       this.setLoading(true);
       
       const updateData = {
@@ -172,26 +255,55 @@ export class ProfilePage extends Block {
         phone: data.phone
       };
 
+      console.log('📤 Sending update to API:', updateData);
       const updatedUser = await AuthAPI.updateProfile(updateData);
+      console.log('✅ User updated successfully:', updatedUser);
+
       this.userData = updatedUser;
 
       if (isChangingPassword && data.oldPassword && data.newPassword) {
+        console.log('🔐 Changing password...');
         try {
           await AuthAPI.changePassword(data.oldPassword, data.newPassword);
+          console.log('✅ Password changed successfully');
           this.showMessage('Профиль и пароль успешно обновлены', 'success');
-        } catch {
+        } catch (error) {
+          console.error('❌ Password change failed:', error);
           this.showMessage('Профиль обновлен, но не удалось сменить пароль', 'error');
         }
       } else {
+        console.log('🎉 Profile updated without password change');
         this.showMessage('Профиль успешно обновлен!', 'success');
       }
 
-      this.toggleEditMode();
+      console.log('🔄 Updating form with new data...');
+      // const children = this.getChildren();
+      // const profileForm = children['profileForm'] as ProfileForm;
+      if (this.profileForm) {
+        this.profileForm.updateData({
+          isEditMode: false,
+          firstName: updatedUser.first_name || '',
+          secondName: updatedUser.second_name || '',
+          displayName: updatedUser.display_name || '',
+          login: updatedUser.login || '',
+          email: updatedUser.email || '',
+          phone: updatedUser.phone || '',
+          avatar: updatedUser.avatar,
+          fullName: `${updatedUser.first_name || ''} ${updatedUser.second_name || ''}`.trim()
+        });
+        console.log('✅ Form updated');
+      }
+
+      this.isEditMode = false;
+      console.log('✅ Edit mode disabled');
+
+      // this.toggleEditMode();
       
     } catch (error) {
       console.error('Profile update error:', error);
       this.showMessage('Ошибка обновления профиля', 'error');
     } finally {
+      console.log('🔄 Clearing loading state');
       this.setLoading(false);
     }
   }
@@ -307,32 +419,37 @@ export class ProfilePage extends Block {
   }
 
   private setLoading(loading: boolean): void {
+    console.log('🔄 setLoading called with:', loading, 'current:', this.isLoading);
     this.isLoading = loading;
-    if (this.profileForm) {
-      this.profileForm.setLoading(loading);
+
+    const children = this.getChildren();
+    const profileForm = children['profileForm'] as ProfileForm;
+
+    if (profileForm) {
+      profileForm.setLoading(loading);
     }
   }
 
-  private forceUpdate(): void {
-    console.log('🔄 Force update called, profileForm exists:', !!this.profileForm);
-    console.log('📋 Current children before update:', Object.keys(this.getChildren()));
-    const content = this.getContent();
-    if (content) {
-      if (this.profileForm) {
-        // Убеждаемся, что profileForm есть в children
-        this.setProps({
-          children: {
-            profileForm: this.profileForm
-          }
-        });
-        console.log('📋 Children after setProps:', Object.keys(this.getChildren()));
-      }
-      content.innerHTML = this.render();
-      console.log('📋 Children after setting innerHTML:', Object.keys(this.getChildren()));
-      this._replacePlaceholders();
-      this._addEvents();
-    }
-  }
+  // private forceUpdate(): void {
+  //   console.log('🔄 Force update called, profileForm exists:', !!this.profileForm);
+  //   console.log('📋 Current children before update:', Object.keys(this.getChildren()));
+  //   const content = this.getContent();
+  //   if (content) {
+  //     if (this.profileForm) {
+  //       // Убеждаемся, что profileForm есть в children
+  //       this.setProps({
+  //         children: {
+  //           profileForm: this.profileForm
+  //         }
+  //       });
+  //       console.log('📋 Children after setProps:', Object.keys(this.getChildren()));
+  //     }
+  //     content.innerHTML = this.render();
+  //     console.log('📋 Children after setting innerHTML:', Object.keys(this.getChildren()));
+  //     this._replacePlaceholders();
+  //     this._addEvents();
+  //   }
+  // }
 
   public override render(): string {
     console.log('🎨 ProfilePage render, isInitialized:', this.isInitialized, 'profileForm:', !!this.profileForm);
@@ -373,6 +490,16 @@ export class ProfilePage extends Block {
     
     // Добавляем обработчики для валидации
     const content = this.getContent();
+
+    content.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      if (target.id === 'back-home' || target.closest('#back-home')) {
+        e.preventDefault();
+        console.log('🏠 Back home clicked');
+        router.go('/messenger');
+      }
+    });
+
     const inputs = content.querySelectorAll('input');
     inputs.forEach(input => {
       input.addEventListener('blur', (e) => {

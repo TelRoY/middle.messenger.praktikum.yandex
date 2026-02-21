@@ -22,6 +22,7 @@ export interface ProfileFormProps extends Props {
 
 export class ProfileForm extends Block {
   constructor(props: ProfileFormProps) {
+    console.log('🏗️ ProfileForm constructor called with props:', props);
     const events: Record<string, EventListener> = {
       submit: (e: Event) => {
         e.preventDefault();
@@ -64,16 +65,28 @@ export class ProfileForm extends Block {
       ...props,
       events
     });
+    console.log('📋 ProfileForm events registered:', Object.keys(events));
   }
 
   public updateData(data: Partial<ProfileFormProps>): void {
     console.log('🔄 ProfileForm updateData called with:', data);
+
+    const hasChanges = Object.keys(data).some(key => 
+      this.props[key] !== data[key as keyof ProfileFormProps]
+    );
+    if (!hasChanges) {
+      console.log('📝 No changes, skipping update');
+      return;
+    }
+
     Object.assign(this.props, data);
     // Полностью перерендериваем форму
     const content = this.getContent();
     if (content) {
-        content.innerHTML = this.render();
-        this._addEvents();
+      // const oldChildren = { ...this.children };
+      content.innerHTML = this.render();
+      this._removeEvents();
+      this._addEvents();
     }
   }
 
@@ -122,6 +135,8 @@ export class ProfileForm extends Block {
   }
 
   public setLoading(loading: boolean): void {
+    console.log('📋 ProfileForm.setLoading called with:', loading);
+
     const content = this.getContent();
     const submitButton = content.querySelector('button[type="submit"]') as HTMLButtonElement;
     if (submitButton) {
@@ -129,11 +144,15 @@ export class ProfileForm extends Block {
         submitButton.disabled = true;
         submitButton.textContent = this.props['isEditMode'] ? 'Сохранение...' : 'Загрузка...';
         submitButton.classList.add('loading');
+        console.log('🔒 Button disabled');
       } else {
         submitButton.disabled = false;
         submitButton.textContent = this.props['isEditMode'] ? 'Сохранить изменения' : 'Редактировать профиль';
         submitButton.classList.remove('loading');
+        console.log('🔓 Button enabled');
       }
+    } else {
+      console.log('❌ Submit button not found')
     }
   }
 
