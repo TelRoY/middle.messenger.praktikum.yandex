@@ -1,12 +1,13 @@
 import { Block } from '../../core/Block';
 import { Validator } from '../../utils/Validator';
-import { AuthAPI } from '../../api/AuthAPI';
+// import { AuthAPI } from '../../api/AuthAPI';
 import { compile } from 'handlebars';
 import templateSource from './authorization.hbs';
 import { router } from '../../main';
 import { Button } from '../../components/buttons/Button';
 import { Input } from '../../components/Input/Input';
 import { Form } from '../../components/forms/Form';
+import store from '../../store/Store';
 
 export class AuthorizationPage extends Block {
   private validationTimeout?: NodeJS.Timeout;
@@ -255,42 +256,48 @@ export class AuthorizationPage extends Block {
       this.clearGlobalError();
       this.showAllErrors({});
       
-      const userData = await AuthAPI.login({
-        login: data['login'].toString().trim(),
-        password: data['password'].toString().trim()
-      });
-      
-      localStorage.setItem('user', JSON.stringify(userData));
-      localStorage.setItem('isAuthenticated', 'true');
-      
-      this.showSuccessMessage('Вход выполнен успешно!');
+      await store.login(data['login'].toString().trim(), data['password'].toString().trim());
+      const user = store.getState().user;
+      console.log('👤 User after login from store:', user);
 
-      this.resetForm();
+      // const userData = await AuthAPI.login({
+      //   login: data['login'].toString().trim(),
+      //   password: data['password'].toString().trim()
+      // });
+      if (user) {
+        localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('isAuthenticated', 'true');
+        this.showSuccessMessage('Вход выполнен успешно!');
+        this.resetForm(); 
       
-      setTimeout(() => {
-        router.go('/messenger');
-      }, 2000);
-      
+        setTimeout(() => {
+          router.go('/messenger');
+        }, 2000);
+      } else {
+        throw new Error('Не удалось получить данные пользователя');
+      }
     } catch (error: unknown) {
       console.error('Login error:', error);
       
       let errorMessage = 'Ошибка при входе. Проверьте данные и попробуйте снова.';
       
       if (error instanceof Error) {
-        if (error.message.includes('User already in system')) {
-          errorMessage = 'Вы уже вошли в систему. Попробуйте выйти и войти снова.';
-          try {
-            await AuthAPI.logout();
-            // Повторяем попытку входа
-            await this.attemptLogin(data);
-            return;
-          } catch (logoutError) {
-            console.error('Logout failed:', logoutError);
-          } 
-        } else {
-            errorMessage = error.message || errorMessage;
-          }
-        }
+        errorMessage = error.message || errorMessage;
+      }
+        // if (error.message.includes('User already in system')) {
+        //   errorMessage = 'Вы уже вошли в систему. Попробуйте выйти и войти снова.';
+        //   try {
+        //     await AuthAPI.logout();
+        //     // Повторяем попытку входа
+        //     await this.attemptLogin(data);
+        //     return;
+        //   } catch (logoutError) {
+        //     console.error('Logout failed:', logoutError);
+        //   } 
+        // } else {
+        //     errorMessage = error.message || errorMessage;
+        //   }
+        // }
       // } else if (typeof error === 'string') {
       //   errorMessage = error;
       // } else if (error && typeof error === 'object' && 'message' in error) {

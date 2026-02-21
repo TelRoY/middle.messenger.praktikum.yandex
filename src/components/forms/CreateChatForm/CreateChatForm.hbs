@@ -1,0 +1,34 @@
+<form class="create-chat-form" id="{{id}}">
+  <div class="form-group">
+    <label for="chat-title" class="form-label">Название чата</label>
+    <input
+      type="text"
+      id="chat-title"
+      name="title"
+      class="form-input"
+      placeholder="Введите название чата"
+      required
+    />
+  </div>
+
+  <div class="form-group">
+    <label for="user-login" class="form-label">Логин пользователя</label>
+    <input
+      type="text"
+      id="user-login"
+      name="login"
+      class="form-input"
+      placeholder="Введите логин для добавления"
+    />
+    <small class="form-hint">Оставьте пустым, чтобы создать чат без участников</small>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="component-button component-button--primary">
+      Создать чат
+    </button>
+    <button type="button" class="component-button component-button--secondary" data-action="cancel">
+      Отмена
+    </button>
+  </div>
+</form>

@@ -12,6 +12,7 @@ import "./components/chat/Message/Message.css";
 import "./components/chat/MessageInput/MessageInput.css";
 import "./components/ui/SearchInput.css";
 import "./components/ui/DropDownMenu.css";
+import "./components/modal/modal.css";
 import "./styles/error.css";
 
 import Handlebars from 'handlebars';
@@ -22,6 +23,7 @@ import { ProfilePage } from './pages/profile/ProfilePage';
 import { MessengerPage } from "./pages/messenger/MessengerPage";
 import { Error404Page } from './pages/404/Error404Page';
 import { Error500Page } from './pages/500/Error500Page';
+// import { ChatsAPI } from './api/ChatsAPI';
 import store, { StoreEvents } from './store/Store'
 
 Handlebars.registerHelper('eq', function(arg1, arg2) {
@@ -37,13 +39,20 @@ store.initAuth().then(() => {
   const currentPath = window.location.pathname;
   const user = store.getState().user;
 
+  console.log('📦 Store after initAuth:', { 
+    user: user?.id, 
+    path: currentPath 
+  });
+
   // Защита роутов
   if (user) {
     if (currentPath === '/' || currentPath === '/sign-up') {
+      console.log('User authenticated, redirecting to messenger');
       router.go('/messenger');
     }
   } else {
     if (currentPath !== '/' && currentPath !== '/sign-up') {
+      console.log('User not authenticated, redirecting to login');
       router.go('/');
     }
   }

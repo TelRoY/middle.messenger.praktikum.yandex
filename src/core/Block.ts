@@ -12,7 +12,7 @@ export abstract class Block {
     FLOW_RENDER: 'flow:render'
   };
 
-  private _element: HTMLElement | null = null;
+  public _element: HTMLElement | null = null;
   private _meta: {
     tagName: string;
     props: Props;

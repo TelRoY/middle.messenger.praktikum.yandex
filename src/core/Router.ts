@@ -136,6 +136,20 @@ export class Router {
     console.log(`📍 Router._onRoute() for ${pathname}`);
 
     const cleanPathname = pathname.replace('.html', '');
+
+    if (cleanPathname === '/404') {
+      console.log('⚠️ Showing 404 page');
+      const route = this.getRoute('/404.html');
+      if (route) {
+        if (this._currentRoute) {
+          this._currentRoute.leave();
+        }
+        this._currentRoute = route;
+        route.render();
+        return;
+      }
+    }
+    
     const route = this.getRoute(cleanPathname);
 
     if (!route) {

@@ -7,7 +7,9 @@
 
   <div class="message__content">
     {{#if (eq type "theirs")}}
-      <div class="message__sender">{{sender}}</div>
+      {{#if sender}}
+        <div class="message__sender">{{sender}}</div>
+      {{/if}}
     {{/if}}
     
     <div class="message__bubble">

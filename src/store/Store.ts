@@ -63,9 +63,18 @@ class Store extends EventBus {
     this.setState({ isLoading: true, error: null });
     try {
       await AuthAPI.login({ login, password });
+      console.log('✅ Login successful, getting user...');
       const user = await AuthAPI.getCurrentUser();
+      console.log('👤 User after login:', user);
+
+      if (!user) {
+        throw new Error('Failed to get user data after login');
+      }
+
       this.setState({ user, isLoading: false });
+      console.log('✅ User saved to store:', this.state.user);
     } catch (error) {
+      console.error('❌ Login error in store:', error);
       this.setState({ isLoading: false, error: (error as Error).message });
       throw error;
     }
@@ -209,6 +218,51 @@ class Store extends EventBus {
         }
       });
     }
+    const updatedChats = this.state.chats.map(chat => {
+      if (chat.id === chatId) {
+        return {
+          ...chat,
+          last_message: {
+            user: { id: message.user_id } as any,
+            time: message.time,
+            content: message.content
+          },
+          unread_count: message.user_id !== this.state.user?.id ? (chat.unread_count || 0) + 1 : chat.unread_count
+        };
+      }
+      return chat;
+    });
+    
+    this.setState({ chats: updatedChats });
+  }
+
+  public addMessages(chatId: number, messages: ChatMessage[]): void {
+    if (this.state.currentChat.id === chatId) {
+      this.setState({
+        currentChat: {
+          ...this.state.currentChat,
+          messages: messages
+        }
+      });
+    }
+  }
+
+  public setCurrentChat(chatId: number, messages: ChatMessage[], token: string): void {
+    this.setState({
+      currentChat: {
+        id: chatId, 
+        messages: messages, 
+        token }
+    });
+  }
+
+  public clearCurrentChat(): void {
+    this.setState({
+      currentChat: { 
+        id: null, 
+        messages: [], 
+        token: null }
+    });
   }
 }
 

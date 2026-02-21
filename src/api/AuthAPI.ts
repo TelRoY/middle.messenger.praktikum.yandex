@@ -199,13 +199,14 @@ export class AuthAPI {
       const response = await client.get<ProfileResponse | ErrorResponse>('/auth/user');
 
       if (!response.ok) {
-        throw new Error('Not authenticated');
+        console.log('ℹ️ User not authenticated');
+        return null;
       }
 
       return response.data as ProfileResponse;
     } catch (error) {
       console.error('Error getting current user:', error);
-      throw error;
+      throw null;
     }
   }
   //   const response = await apiClient.get<ProfileResponse | ErrorResponse>(
@@ -265,5 +266,22 @@ export class AuthAPI {
     }
     
     return response.data as ProfileResponse;
+  }
+
+  static async searchUsers(login: string): Promise<User[]> {
+    console.log('🔍 Searching for user:', login);
+    const response = await apiClient.post<User[] | ErrorResponse>(
+      '/user/search',
+      { login }
+    );
+    
+    if (!response.ok) {
+      const error = response.data as ErrorResponse;
+      throw new Error(error.reason || 'Ошибка поиска пользователей');
+    }
+    const users = response.data as User[];
+    console.log('✅ Found users:', users);
+    return users;
+    // return response.data as User[];
   }
 }

@@ -8,8 +8,8 @@ export interface MessageProps extends Props {
   text: string;
   time: string;
   status?: 'sent' | 'delivered' | 'read';
-  sender?: string; 
-  avatar?: string;
+  sender?: string | null; 
+  avatar?: string | null;
 }
 
 export class Message extends Block {
