@@ -8,6 +8,8 @@ import { ChatHeader } from '../../components/chat/ChatHeader/ChatHeader';
 import { MessageList } from '../../components/chat/MessageList/MessageList';
 import { Message as MessageComponent } from '../../components/chat/Message/Message';
 import { MessageInput } from '../../components/chat/MessageInput/MessageInput';
+import { AuthAPI } from '../../api/AuthAPI';
+import store from '../../store/Store';
 
 interface Chat {
   id: number;
@@ -364,6 +366,9 @@ export class MessengerPage extends Block {
           console.log('Покинуть чат');
         }
         break;
+      case 'logout':
+        this.handleLogout();
+        break;
     }
   }
 
@@ -376,6 +381,40 @@ export class MessengerPage extends Block {
       // this.updateChatList();
     } catch (error) {
       console.error('❌ Failed to load chats:', error);
+    }
+  }
+
+  private async handleLogout(): Promise<void> {
+    console.log('🚪 Logging out...');
+    
+    try {
+      // Показываем подтверждение
+      if (confirm('Вы действительно хотите выйти?')) {
+        await AuthAPI.logout();
+        
+        // Очищаем localStorage
+        localStorage.removeItem('user');
+        localStorage.removeItem('isAuthenticated');
+        
+        // Очищаем store
+        store.setState({
+          user: null,
+          chats: [],
+          currentChat: {
+            id: null,
+            messages: [],
+            token: null
+          }
+        });
+        
+        console.log('✅ Logout successful, redirecting to login');
+        
+        // Перенаправляем на страницу авторизации
+        router.go('/');
+      }
+    } catch (error) {
+      console.error('❌ Logout error:', error);
+      alert('Ошибка при выходе из системы');
     }
   }
 
@@ -397,6 +436,8 @@ export class MessengerPage extends Block {
     if (content) {
       content.style.display = 'block';
     }
+
+    document.body.classList.add('messenger-mode');
     
     // Скроллим к последнему сообщению
     setTimeout(() => {
@@ -410,6 +451,8 @@ export class MessengerPage extends Block {
     if (content) {
       content.style.display = 'none';
     }
+
+    document.body.classList.remove('messenger-mode');
   }
 
   protected override componentDidMount(): void {

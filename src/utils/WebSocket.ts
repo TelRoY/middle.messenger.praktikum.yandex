@@ -1,6 +1,9 @@
 import { ChatMessage } from '../models/Chat';
 import store from '../store/Store';
 
+export type MessageHandler = (message: ChatMessage) => void;
+export type StatusHandler = (status: string) => void;
+
 export class WebSocketTransport {
   private socket: WebSocket | null = null;
   private pingInterval: number | null = null;

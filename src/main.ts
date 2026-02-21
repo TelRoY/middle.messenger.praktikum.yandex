@@ -22,7 +22,7 @@ import { ProfilePage } from './pages/profile/ProfilePage';
 import { MessengerPage } from "./pages/messenger/MessengerPage";
 import { Error404Page } from './pages/404/Error404Page';
 import { Error500Page } from './pages/500/Error500Page';
-import store from './store/Store'
+import store, { StoreEvents } from './store/Store'
 
 Handlebars.registerHelper('eq', function(arg1, arg2) {
   return arg1 === arg2;
@@ -46,6 +46,16 @@ store.initAuth().then(() => {
     if (currentPath !== '/' && currentPath !== '/sign-up') {
       router.go('/');
     }
+  }
+});
+
+store.on(StoreEvents.UPDATED, (prevState: any, nextState: any) => {
+  console.log('Store updated:', nextState);
+  
+  // Если пользователь стал null (вышел), перенаправляем на /
+  if (!nextState.user && prevState.user) {
+    console.log('User logged out, redirecting to login');
+    router.go('/');
   }
 });
 

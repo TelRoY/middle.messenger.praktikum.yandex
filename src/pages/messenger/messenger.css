@@ -1,3 +1,40 @@
+.messenger-page {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.messenger-page .container {
+  all: unset; /* Сбрасываем все стили container */
+  width: 100vw;
+  height: 100vh;
+  display: block;
+  padding: 0;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.messenger-page .main {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+body.messenger-mode {
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+body.messenger-mode .container {
+  all: unset;
+}
+
 .wrapper {
     display: flex;
     width: 100%;
@@ -12,6 +49,7 @@
     display: flex;
     flex-direction: column;
     z-index: 1;
+    height: 100vh;
   }
   
   .left-column-main {
@@ -50,6 +88,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    height: 100vh;
   }
   
   .profile-button {

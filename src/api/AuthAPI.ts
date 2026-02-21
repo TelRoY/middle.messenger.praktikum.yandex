@@ -165,14 +165,32 @@ export class AuthAPI {
 
   static async logout(): Promise<void> {
     console.log('👋 Logging out');
-    const client = new HTTPClient('https://ya-praktikum.tech/api/v2');
-    const response = await client.post<ErrorResponse>('/auth/logout', {});
+
+    try {
+      const client = new HTTPClient('https://ya-praktikum.tech/api/v2');
+      const response = await client.post<ErrorResponse>('/auth/logout', {});
     
-    if (!response.ok) {
-      const error = response.data as ErrorResponse;
-      throw new Error(error.reason || 'Ошибка при выходе');
+      if (!response.ok) {
+        if (response.status === 401) {
+          console.log('ℹ️ Session already invalid, proceeding with local logout');
+        } else {
+          const error = response.data as ErrorResponse;
+          throw new Error(error.reason || 'Ошибка при выходе');
+        }
+      } else {
+        console.log('✅ Logout successful');
+      }
+    } catch (error) {
+      console.error('❌ Logout error:', error);
+    } finally {
+      localStorage.removeItem('user');
+      localStorage.removeItem('isAuthenticated');
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c
+        .replace(/^ +/, "")
+        .replace(/=.*/, "=; expires=" + new Date().toUTCString() + "; path=/");
+      });
     }
-    console.log('✅ Logout successful');
   }
 
   static async getCurrentUser(): Promise<ProfileResponse | null> {
