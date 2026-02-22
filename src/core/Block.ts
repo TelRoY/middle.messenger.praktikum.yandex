@@ -42,8 +42,6 @@ export abstract class Block {
   const children: Record<string, Block> = {};
   const props: Props = {};
 
-  console.log('Block._extractChildren input keys:', Object.keys(propsAndChildren));
-
   if (propsAndChildren['children'] && typeof propsAndChildren['children'] === 'object') {
     const childrenObj = propsAndChildren['children'] as Record<string, any>;
     Object.entries(childrenObj).forEach(([key, value]) => {

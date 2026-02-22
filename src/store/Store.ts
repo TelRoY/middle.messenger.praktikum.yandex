@@ -62,18 +62,14 @@ class Store extends EventBus {
     this.setState({ isLoading: true, error: null });
     try {
       await AuthAPI.login({ login, password });
-      console.log('✅ Login successful, getting user...');
       const user = await AuthAPI.getCurrentUser();
-      console.log('👤 User after login:', user);
 
       if (!user) {
         throw new Error('Failed to get user data after login');
       }
 
       this.setState({ user, isLoading: false });
-      console.log('✅ User saved to store:', this.state.user);
     } catch (error) {
-      console.error('❌ Login error in store:', error);
       this.setState({ isLoading: false, error: (error as Error).message });
       throw error;
     }
