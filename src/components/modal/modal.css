@@ -91,6 +91,8 @@
     padding: 24px;
     background: white;
     border-radius: 0 0 16px 16px;
+    max-height: 60vh;
+    overflow-y: auto;
   }
   
   .create-chat-form {

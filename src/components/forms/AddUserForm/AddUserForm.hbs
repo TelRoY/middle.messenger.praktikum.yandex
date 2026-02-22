@@ -1,0 +1,43 @@
+<form class="add-user-form" id="{{id}}">
+  <div class="form-group">
+    <label for="user-login" class="form-label">Логин пользователя</label>
+    <input
+      type="text"
+      id="user-login"
+      name="login"
+      class="form-input"
+      placeholder="Введите логин (мин. 3 символа)"
+      autocomplete="off"
+      value="{{loginInput}}"
+    />
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="component-button component-button--primary">
+      {{#if isLoading}}Поиск...{{else}}Найти{{/if}}
+    </button>
+    <button type="button" class="component-button component-button--secondary" data-action="close">
+      Закрыть
+    </button>
+  </div>
+
+  {{#if searchResults.length}}
+    <div class="search-results">
+      <h4>Найденные пользователи:</h4>
+      <ul class="search-results__list">
+        {{#each searchResults}}
+          <li class="search-results__item">
+            <span>{{first_name}} {{second_name}} (@{{login}})</span>
+            <button 
+              type="button" 
+              class="search-results__add" 
+              data-action="add-user" 
+              data-user-id="{{id}}">
+              Добавить
+            </button>
+          </li>
+        {{/each}}
+      </ul>
+    </div>
+  {{/if}}
+</form>

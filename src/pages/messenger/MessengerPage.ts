@@ -12,10 +12,12 @@ import { Message as MessageComponent } from '../../components/chat/Message/Messa
 import { MessageInput } from '../../components/chat/MessageInput/MessageInput';
 import { Modal } from '../../components/modal/Modal';
 import { CreateChatForm } from '../../components/forms/CreateChatForm/CreateChatForm';
+import { AddUserForm } from '../../components/forms/AddUserForm/AddUserForm';
 
 import { WebSocketTransport } from '../../utils/WebSocket';
 import store, { StoreEvents } from '../../store/Store';
 import { ChatMessage } from '../../models/Chat';
+// import { User } from '../../models/User';
 
 import templateSource from './messenger.hbs';
 
@@ -43,6 +45,8 @@ export class MessengerPage extends Block {
   private currentUserId: number = 0;
   private currentUserInitials: string = '';
   private isLoadingChats: boolean = false;
+  private addUserModal: Modal;
+  // private addUserForm: AddUserForm;
 
   constructor() {
 
@@ -81,13 +85,33 @@ export class MessengerPage extends Block {
       }
     });
 
+    const tempAddUserForm = new AddUserForm({
+      id: 'add-user-form',
+      chatId: 0,
+      currentUserId: 0,
+      onAddUser: () => {},
+      onRemoveUser: () => {},
+      onClose: () => {}
+    });
+
+    const addUserModal = new Modal({
+      id: 'add-user-form',
+      title: 'Управление чатом',
+      isOpen: false,
+      onClose: () => this.addUserModal.close(),
+      children: {
+        body: tempAddUserForm
+      }
+    });
+
     super('div', {
       children: {
         chatList,
         chatHeader,
         messageList,
         messageInput,
-        createChatModal
+        createChatModal,
+        addUserModal
       },
       events: {
         click: (e: Event) => {
@@ -134,6 +158,8 @@ export class MessengerPage extends Block {
     this.messageInput = messageInput;
     this.createChatForm = createChatForm;
     this.createChatModal = createChatModal;
+    this.addUserModal = addUserModal;
+    // this.addUserForm = tempAddUserForm;
     this.chats = [];
     
     const user = store.getState().user;
@@ -141,14 +167,17 @@ export class MessengerPage extends Block {
     if (user && user.id) {
       this.currentUserId = user.id;
       this.currentUserInitials = (user.first_name?.[0] || 'И') + (user.second_name?.[0] || 'И');
-    } else {
-      console.error('❌ No user found in store');
     }
     
     store.on(StoreEvents.UPDATED, this.handleStoreUpdate.bind(this));
   }
 
   private handleStoreUpdate(prevState: any, nextState: any): void {
+    console.log('📦 Store updated:', {
+      prevChat: prevState.currentChat?.id,
+      nextChat: nextState.currentChat?.id,
+      currentChatId: this.currentChatId
+    });
 
     if (nextState.user && !this.currentUserId) {
       this.currentUserId = nextState.user.id;
@@ -157,9 +186,12 @@ export class MessengerPage extends Block {
     }
 
     if (nextState.currentChat.id !== prevState.currentChat.id) {
+      console.log('🔄 Chat changed to', nextState.currentChat.id);
+
       if (nextState.currentChat.id) {
         const currentChat = this.chats.find(c => c.id === nextState.currentChat.id);
         if (currentChat) {
+          console.log('📋 Updating chat header for:', currentChat.name);
           const newChatHeader = new ChatHeader({
             title: currentChat.name,
             avatar: currentChat.avatar,
@@ -174,6 +206,14 @@ export class MessengerPage extends Block {
               chatHeader: this.chatHeader
             }
           });
+
+          this.forceUpdateChatHeader(
+            currentChat.name, 
+            currentChat.avatar, 
+            nextState.currentChat.messages?.length > 0 ? 'Online' : 'New chat'
+          );
+
+          console.log('✅ ChatHeader updated from store');
         }
       }
       this.connectToChat(nextState.currentChat.id, nextState.currentChat.token);
@@ -254,7 +294,7 @@ export class MessengerPage extends Block {
   private updateChatList(): void {
     
     if (!this.chats || this.chats.length === 0) {
-      this.chatList.setProps({ items: [] });
+      this.chatList.setItems([]);
       return;
     }
 
@@ -311,11 +351,20 @@ export class MessengerPage extends Block {
     if (chatId === this.currentChatId) {
       return;
     }
-    
-    const chatExists = this.chats?.some(chat => chat.id === chatId);
-    if (!chatExists) {
+
+    const selectedChat = this.chats.find(c => c.id === chatId);
+    if (!selectedChat) {
+      console.error('❌ Chat not found:', chatId);
       return;
     }
+
+    console.log('✅ Selected chat:', selectedChat.name);
+    
+    // const chatExists = this.chats?.some(chat => chat.id === chatId);
+    // if (!chatExists) {
+    //   return;
+    // }
+
     this.currentChatId = chatId;
     
     const token = await ChatsAPI.getToken(chatId);
@@ -326,28 +375,51 @@ export class MessengerPage extends Block {
     } catch {
       messages = [];
     }
-    store.setCurrentChat(chatId, messages, token);
-    
-    const currentChat = this.chats.find(c => c.id === chatId)!;
-    
-    if (!currentChat) {
-      return;
-    }
 
+    store.setCurrentChat(chatId, messages, token);
+
+    console.log('📋 Creating new ChatHeader with title:', selectedChat.name);
+    
     const newChatHeader = new ChatHeader({
-      title: currentChat.name,
-      avatar: currentChat.avatar,
+      title: selectedChat.name,
+      avatar: selectedChat.avatar,
       status: messages.length > 0 ? 'Online' : 'New chat'
     });
-    
+
     this.chatHeader = newChatHeader;
-    
+
+    console.log('👥 Children before update:', Object.keys(this.getChildren()));
+
     this.setProps({
       children: {
         ...this.getChildren(),
         chatHeader: this.chatHeader
       }
     });
+    console.log('👥 Children after update:', Object.keys(this.getChildren()));
+
+    console.log('✅ ChatHeader updated');
+
+    // const currentChat = this.chats.find(c => c.id === chatId)!;
+    
+    // if (currentChat) {
+    //   console.log('🔄 Updating chat header:', currentChat.name);
+    //   const newChatHeader = new ChatHeader({
+    //     title: currentChat.name,
+    //     avatar: currentChat.avatar,
+    //     status: messages.length > 0 ? 'Online' : 'New chat'
+    //   });
+
+    //   this.chatHeader = newChatHeader;
+
+    //   this.setProps({
+    //     children: {
+    //       ...this.getChildren(),
+    //       chatHeader: this.chatHeader
+    //     }
+    //   });
+    // }
+    this.forceUpdateChatHeader(selectedChat.name, selectedChat.avatar, messages.length > 0 ? 'Online' : 'New chat');
 
     this.updateMessagesList(messages);
     this.connectToChat(chatId, token);
@@ -367,6 +439,12 @@ export class MessengerPage extends Block {
       case 'new-chat':
         this.createChatModal.open();
         break;
+      case 'add-user':
+        this.openUserManagementModal();
+        break;
+      case 'remove-user':
+        // this.openUserManagementModal();
+        break;        
       case 'settings':
         router.go('/settings');
         break;
@@ -374,6 +452,14 @@ export class MessengerPage extends Block {
         if (this.currentChatId && confirm('Очистить историю сообщений?')) {
           this.messages[this.currentChatId] = [];
           this.updateMessagesList([]);
+        }
+        break;
+      case 'delete-chat':
+        this.handleDeleteChat();
+        break;
+      case 'leave':
+        if (confirm('Покинуть чат?')) {
+          // TODO: реализовать выход из чата
         }
         break;
       case 'logout':
@@ -424,6 +510,27 @@ export class MessengerPage extends Block {
       
       this.chats = processedChats;
       this.updateChatList();
+
+      if (this.currentChatId && !this.chats.some(c => c.id === this.currentChatId)) {
+        this.currentChatId = null;
+        
+        const newChatHeader = new ChatHeader({
+          title: 'Выберите чат',
+          avatar: '',
+          status: ''
+        });
+        
+        this.chatHeader = newChatHeader;
+        
+        this.setProps({
+          children: {
+            ...this.getChildren(),
+            chatHeader: this.chatHeader
+          }
+        });
+  
+        this.updateMessagesList([]);
+      }
 
       if (this.chats && this.chats.length > 0 && !this.currentChatId && this.currentUserId) {
         const firstChat = this.chats[0];
@@ -512,6 +619,142 @@ export class MessengerPage extends Block {
     
     await this.loadChats();
   }
+
+  private async handleDeleteChat(): Promise<void> {
+    if (!this.currentChatId) {
+      alert('Чат не выбран');
+      return;
+    }
+  
+    // Подтверждение удаления
+    const confirmDelete = confirm('Вы уверены, что хотите удалить этот чат? Это действие нельзя отменить.');
+    if (!confirmDelete) return;
+  
+    try {
+      console.log('🗑️ Deleting chat', this.currentChatId);
+      
+      // Вызываем API для удаления чата
+      await ChatsAPI.deleteChat(this.currentChatId);
+      
+      // Удаляем чат из локального списка
+      this.chats = this.chats.filter(chat => chat.id !== this.currentChatId);
+      
+      // Очищаем текущий чат
+      this.currentChatId = null;
+      
+      // Обновляем заголовок
+      const newChatHeader = new ChatHeader({
+        title: 'Выберите чат',
+        avatar: '',
+        status: ''
+      });
+      
+      this.chatHeader = newChatHeader;
+      
+      this.setProps({
+        children: {
+          ...this.getChildren(),
+          chatHeader: this.chatHeader
+        }
+      });
+  
+      // Очищаем сообщения
+      this.updateMessagesList([]);
+      
+      // Обновляем список чатов
+      this.updateChatList();
+      
+      // Закрываем WebSocket соединение если было
+      if (this.wsTransport) {
+        this.wsTransport.close();
+        this.wsTransport = null;
+      }
+      
+      alert('Чат успешно удален');
+      
+    } catch (error) {
+      console.error('❌ Failed to delete chat:', error);
+      alert('Ошибка при удалении чата');
+    }
+  }
+
+  private async openUserManagementModal(): Promise<void> {
+    if (!this.currentChatId) {
+      alert('Сначала выберите чат');
+      return;
+    };
+
+    console.log('🔄 Opening user management for chat', this.currentChatId);
+
+    const newAddUserForm = new AddUserForm({
+      id: 'add-user-form',
+      chatId: this.currentChatId,
+      currentUserId: this.currentUserId,
+      onAddUser: (userId: number) => this.handleAddUser(userId),
+      // onRemoveUser: (userId: number) => this.handleRemoveUser(userId),
+      onClose: () => this.addUserModal.close()
+    });
+  
+    this.addUserModal.setProps({
+      children: {
+        body: newAddUserForm
+      }
+    });
+  
+    this.addUserModal.open();
+  }
+
+  private async handleAddUser(userId: number): Promise<void> {
+    if (!this.currentChatId) return;
+    
+    try {
+      await ChatsAPI.addUserToChat({
+        users: [userId],
+        chatId: this.currentChatId
+      });
+      
+      alert('Пользователь добавлен');
+      this.addUserModal.close();
+      
+    } catch (error) {
+      console.error('Failed to add user:', error);
+      alert('Ошибка при добавлении пользователя');
+    }
+  }
+
+  private forceUpdateChatHeader(title: string, avatar: string, status: string): void {
+    console.log('🔄 Force updating chat header with title:', title);
+    
+    // Находим элемент заголовка в DOM
+    const content = this.getContent();
+    const headerElement = content.querySelector('.chat-header');
+    
+    if (headerElement) {
+      // Обновляем текст напрямую
+      const titleElement = headerElement.querySelector('.chat-title');
+      const avatarElement = headerElement.querySelector('.chat-avatar-placeholder');
+      const statusElement = headerElement.querySelector('.chat-online-status');
+      
+      if (titleElement) titleElement.textContent = title;
+      if (avatarElement) avatarElement.textContent = avatar;
+      if (statusElement) statusElement.textContent = status;
+      
+      console.log('✅ Chat header updated directly in DOM');
+    } else {
+      console.log('❌ Chat header element not found');
+    }
+  }
+
+  // private async handleRemoveUser(userId: number): Promise<void> {
+  //   if (!this.currentChatId) return;
+
+  //   await ChatsAPI.deleteUserFromChat({
+  //     users: [userId],
+  //     chatId: this.currentChatId
+  //   });
+    
+  //   this.addUserForm.removeUser(userId);
+  // }
 
   public override render(): string {
     const template = compile(templateSource);
