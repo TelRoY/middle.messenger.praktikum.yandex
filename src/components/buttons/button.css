@@ -1,4 +1,3 @@
-
 .button {
     padding: var(--spacing-sm);
     border: none;
@@ -51,36 +50,3 @@
       }
     }
   }
-
-  /* Проверить стили, объединить их с существующими в button.css и в components.css
-/* .component-button {
-  padding: 12px 24px;
-  border-radius: 8px;
-  border: none;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.component-button--primary {
-  background-color: #007bff;
-  color: white;
-}
-
-.component-button--primary:hover:not(:disabled) {
-  background-color: #0056b3;
-}
-
-.component-button--secondary {
-  background-color: #6c757d;
-  color: white;
-}
-
-.component-button--secondary:hover:not(:disabled) {
-  background-color: #545b62;
-}
-
-.component-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-} */

@@ -13,11 +13,9 @@ export class Form extends Block {
         }
       };
     const { children, ...restProps } = props;
-    // Передаем все props в базовый класс
     super('form', {
       ...restProps,
       children,
-      // ...props,
       events
     });
   }  

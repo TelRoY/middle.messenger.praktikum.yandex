@@ -1,13 +1,14 @@
 import { Block } from '../../core/Block';
 import { Validator } from '../../utils/Validator';
-// import { AuthAPI } from '../../api/AuthAPI';
 import { compile } from 'handlebars';
-import templateSource from './authorization.hbs';
 import { router } from '../../main';
+import store from '../../store/Store';
+
 import { Button } from '../../components/buttons/Button';
 import { Input } from '../../components/Input/Input';
 import { Form } from '../../components/forms/Form';
-import store from '../../store/Store';
+
+import templateSource from './authorization.hbs';
 
 export class AuthorizationPage extends Block {
   private validationTimeout?: NodeJS.Timeout;
@@ -77,7 +78,6 @@ export class AuthorizationPage extends Block {
           if (target.closest('#registration-btn')) {
             e.preventDefault();
             e.stopPropagation();
-            console.log('🔵 Registration button clicked, navigating to /sign-up');
             router.go('/sign-up');
           }
         }
@@ -135,7 +135,6 @@ export class AuthorizationPage extends Block {
     const formGroup = content.querySelector(`[name="${fieldName}"]`)?.closest('.form-group');
     
     if (formGroup) {
-      // Удаляем предыдущую ошибку
       const oldError = formGroup.querySelector('.field-error');
       if (oldError) {
         oldError.remove();
@@ -173,13 +172,10 @@ export class AuthorizationPage extends Block {
 
 
    private showAllErrors(errors: Record<string, string>): void {
-    // Очищаем глобальные ошибки
     this.clearGlobalError();
     
-    // Очищаем все полевые ошибки
     Object.keys(errors).forEach(field => this.clearFieldError(field));
     
-    // Показываем новые ошибки
     Object.entries(errors).forEach(([field, message]) => {
       this.showFieldError(field, message);
     });
@@ -188,10 +184,9 @@ export class AuthorizationPage extends Block {
   private showGlobalError(message: string): void {
     const content = this.getContent();
     
-    // Сначала очищаем старую ошибку
     this.clearGlobalError();
     
-    if (!message) return; // Не показываем пустое сообщение
+    if (!message) return;
     
     const errorDiv = document.createElement('div');
     errorDiv.className = 'global-error';
@@ -221,7 +216,6 @@ export class AuthorizationPage extends Block {
   private showSuccessMessage(message: string): void {
     const content = this.getContent();
     
-    // Очищаем предыдущие сообщения
     this.clearGlobalError();
     content.querySelectorAll('.success-message').forEach(el => el.remove());
     
@@ -252,18 +246,12 @@ export class AuthorizationPage extends Block {
     try {
       this.setLoading(true);
       
-      // Очищаем все ошибки перед попыткой входа
       this.clearGlobalError();
       this.showAllErrors({});
       
       await store.login(data['login'].toString().trim(), data['password'].toString().trim());
       const user = store.getState().user;
-      console.log('👤 User after login from store:', user);
 
-      // const userData = await AuthAPI.login({
-      //   login: data['login'].toString().trim(),
-      //   password: data['password'].toString().trim()
-      // });
       if (user) {
         localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('isAuthenticated', 'true');
@@ -277,33 +265,12 @@ export class AuthorizationPage extends Block {
         throw new Error('Не удалось получить данные пользователя');
       }
     } catch (error: unknown) {
-      console.error('Login error:', error);
       
       let errorMessage = 'Ошибка при входе. Проверьте данные и попробуйте снова.';
       
       if (error instanceof Error) {
         errorMessage = error.message || errorMessage;
-      }
-        // if (error.message.includes('User already in system')) {
-        //   errorMessage = 'Вы уже вошли в систему. Попробуйте выйти и войти снова.';
-        //   try {
-        //     await AuthAPI.logout();
-        //     // Повторяем попытку входа
-        //     await this.attemptLogin(data);
-        //     return;
-        //   } catch (logoutError) {
-        //     console.error('Logout failed:', logoutError);
-        //   } 
-        // } else {
-        //     errorMessage = error.message || errorMessage;
-        //   }
-        // }
-      // } else if (typeof error === 'string') {
-      //   errorMessage = error;
-      // } else if (error && typeof error === 'object' && 'message' in error) {
-      //   errorMessage = String((error as any).message);
-      // }
-      
+      }      
       this.showGlobalError(errorMessage);
     } finally {
       this.setLoading(false);
@@ -339,21 +306,17 @@ export class AuthorizationPage extends Block {
   }
 
   public override show(): void {
-    console.log('👁️ Showing AuthorizationPage');
     const content = this.getContent();
     if (content) {
       content.style.display = 'block';
     }
-    // super.show();
   }
 
   public override hide(): void {
-    console.log('👋 Hiding AuthorizationPage');
     const content = this.getContent();
     if (content) {
       content.style.display = 'none';
     }
-    // super.hide();
   }
       
 

@@ -100,22 +100,16 @@ export class Router {
   }
 
   go(pathname: string): void {
-    console.log(`🔄 Router.go() to ${pathname}`);
-    console.log(`📍 Current path: ${window.location.pathname}`);
     if (this._isNavigating) {
-      console.log('⚠️ Already navigating, skipping');
       return;
     }
 
     this._isNavigating = true;
-    console.log(`🔄 Router.go() to ${pathname}`);
 
     const cleanPathname = pathname.replace('.html', '');
     const currentPath = window.location.pathname.replace('.html', '');
     
-    // Проверяем, не пытаемся ли перейти на ту же страницу
     if (currentPath === cleanPathname && this._currentRoute) {
-      console.log('⚠️ Same route, forcing re-render');
       window.history.pushState({}, '', pathname);
       this._currentRoute.forceRender();
       setTimeout(() => {
@@ -133,13 +127,28 @@ export class Router {
   }
 
   private _onRoute(pathname: string): void {
-    console.log(`📍 Router._onRoute() for ${pathname}`);
-
-    const cleanPathname = pathname.replace('.html', '');
-
-    if (cleanPathname === '/404') {
-      console.log('⚠️ Showing 404 page');
-      const route = this.getRoute('/404.html');
+  
+    let cleanPathname = pathname.replace('.html', '');
+    
+    if (cleanPathname === '') {
+      cleanPathname = '/';
+    }
+    
+    if (cleanPathname === '/404' || cleanPathname === '/404.html') {
+      const route = this.getRoute('/404');
+      if (route) {
+        if (this._currentRoute) {
+          this._currentRoute.leave();
+        }
+        this._currentRoute = route;
+        route.render();
+        return;
+      }
+    }
+  
+    // Специальная обработка для 500
+    if (cleanPathname === '/500' || cleanPathname === '/500.html') {
+      const route = this.getRoute('/500');
       if (route) {
         if (this._currentRoute) {
           this._currentRoute.leave();
@@ -151,29 +160,22 @@ export class Router {
     }
     
     const route = this.getRoute(cleanPathname);
-
+  
     if (!route) {
-      console.log(`❌ No route for ${cleanPathname}`);
-      this.go('/404.html');
+      this.go('/404');
       return;
     }
-
+  
     try {
       if (this._currentRoute) {
-        console.log('👋 Leaving current route');
         this._currentRoute.leave();
       }
   
       this._currentRoute = route;
       route.render();
-    } catch (error) {
-      console.error('❌ Error rendering route:', error);
-      this.go('/500.html');
+    } catch {
+      this.go('/500');
     }
-
-    setTimeout(() => {
-      this._isNavigating = false;
-    }, 300);
   }
 
   back(): void {

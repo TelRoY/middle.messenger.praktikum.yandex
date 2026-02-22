@@ -1,7 +1,6 @@
 import { Block, Props } from '../../../core/Block';
 import { compile } from 'handlebars';
 import templateSource from './CreateChatForm.hbs';
-// import { ChatsAPI } from '../../../api/ChatsAPI';
 
 export interface CreateChatFormProps extends Props {
   id?: string;

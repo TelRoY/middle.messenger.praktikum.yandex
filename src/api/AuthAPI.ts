@@ -55,7 +55,6 @@ export interface ErrorResponse {
   errors?: Record<string, string> | undefined;
 }
 
-// Вспомогательные функции для безопасного преобразования
 function loginRequestToRecord(data: LoginRequest): Record<string, string> {
   return {
     login: data.login,
@@ -96,14 +95,8 @@ function profileUpdateRequestToRecord(data: ProfileUpdateRequest): Record<string
 
 export class AuthAPI {
   static async login(data: LoginRequest): Promise<LoginResponse> {
-    console.log('📝 Login form submitted with data:', data);
-
-    try {
-      await this.logout();
-      console.log('✅ Previous session cleared');
-    } catch {
-      console.log('ℹ️ No active session to clear');
-    }
+    await this.logout();
+    
 
     const requestData = loginRequestToRecord(data);
     const client = new HTTPClient('https://ya-praktikum.tech/api/v2');
@@ -121,67 +114,39 @@ export class AuthAPI {
   }
 
   static async register(data: RegistrationRequest): Promise<RegistrationResponse> {
-    try {
-      console.log('📤 Sending registration request to:', '/auth/signup', data);
-      const requestData = registrationRequestToRecord(data);
-      
-      console.log('📤 Sending registration request to:', '/auth/signup', requestData);
-      const response = await fetch('https://ya-praktikum.tech/api/v2/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(requestData)
-      });
-
-      const responseData = await response.json();
-      console.log('📥 Registration response:', { status: response.status, data: responseData });
-
-      if (!response.ok) {
-        throw new Error(responseData.reason || 'Ошибка регистрации');
-      }
-
-      return responseData;
-
-      // const response = await apiClient.post<RegistrationResponse | ErrorResponse>(
-      //   '/auth/signup',
-      //   requestData
-      // );
-      
-      // console.log('📥 Registration response:', response);
     
-      // if (!response.ok) {
-      //   const error = response.data as ErrorResponse;
-      //   throw new Error(error.reason || 'Ошибка регистрации');
-      // }
+    const requestData = registrationRequestToRecord(data);
+
+    const response = await fetch('https://ya-praktikum.tech/api/v2/auth/signup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(requestData)
+    });
+
+    const responseData = await response.json();
     
-      // return response.data as RegistrationResponse;
-    } catch (error) {
-      console.error('❌ Registration error details:', error);
-      throw error;
+    if (!response.ok) {
+      throw new Error(responseData.reason || 'Ошибка регистрации');
     }
+
+    return responseData;
   }
 
   static async logout(): Promise<void> {
-    console.log('👋 Logging out');
 
     try {
       const client = new HTTPClient('https://ya-praktikum.tech/api/v2');
       const response = await client.post<ErrorResponse>('/auth/logout', {});
     
       if (!response.ok) {
-        if (response.status === 401) {
-          console.log('ℹ️ Session already invalid, proceeding with local logout');
-        } else {
+        if (response.status !== 401) {
           const error = response.data as ErrorResponse;
           throw new Error(error.reason || 'Ошибка при выходе');
         }
-      } else {
-        console.log('✅ Logout successful');
       }
-    } catch (error) {
-      console.error('❌ Logout error:', error);
     } finally {
       localStorage.removeItem('user');
       localStorage.removeItem('isAuthenticated');
@@ -199,27 +164,14 @@ export class AuthAPI {
       const response = await client.get<ProfileResponse | ErrorResponse>('/auth/user');
 
       if (!response.ok) {
-        console.log('ℹ️ User not authenticated');
         return null;
       }
 
       return response.data as ProfileResponse;
-    } catch (error) {
-      console.error('Error getting current user:', error);
+    } catch {
       throw null;
     }
   }
-  //   const response = await apiClient.get<ProfileResponse | ErrorResponse>(
-  //     '/auth/user'
-  //   );
-    
-  //   if (!response.ok) {
-  //     const error = response.data as ErrorResponse;
-  //     throw new Error(error.reason || 'Ошибка получения данных пользователя');
-  //   }
-    
-  //   return response.data as ProfileResponse;
-  // }
 
   static async updateProfile(data: ProfileUpdateRequest): Promise<ProfileResponse> {
     const requestData = profileUpdateRequestToRecord(data);
@@ -269,7 +221,6 @@ export class AuthAPI {
   }
 
   static async searchUsers(login: string): Promise<User[]> {
-    console.log('🔍 Searching for user:', login);
     const response = await apiClient.post<User[] | ErrorResponse>(
       '/user/search',
       { login }
@@ -280,8 +231,6 @@ export class AuthAPI {
       throw new Error(error.reason || 'Ошибка поиска пользователей');
     }
     const users = response.data as User[];
-    console.log('✅ Found users:', users);
     return users;
-    // return response.data as User[];
   }
 }

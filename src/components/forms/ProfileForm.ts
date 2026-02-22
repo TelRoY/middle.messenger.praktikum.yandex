@@ -22,7 +22,6 @@ export interface ProfileFormProps extends Props {
 
 export class ProfileForm extends Block {
   constructor(props: ProfileFormProps) {
-    console.log('🏗️ ProfileForm constructor called with props:', props);
     const events: Record<string, EventListener> = {
       submit: (e: Event) => {
         e.preventDefault();
@@ -33,7 +32,6 @@ export class ProfileForm extends Block {
       click: (e: Event) => {
         const target = e.target as HTMLElement;
         
-        // Обработка кнопки отмены
         if (target.id === 'cancel-edit' || target.closest('#cancel-edit')) {
           e.preventDefault();
           if (props.onCancel) {
@@ -41,7 +39,6 @@ export class ProfileForm extends Block {
           }
           return;
         }
-         // Обработка кнопки загрузки аватара
          if (target.classList.contains('avatar-upload-btn') || target.closest('.avatar-upload-btn')) {
             e.preventDefault();
             const content = this.getContent();
@@ -65,25 +62,20 @@ export class ProfileForm extends Block {
       ...props,
       events
     });
-    console.log('📋 ProfileForm events registered:', Object.keys(events));
   }
 
   public updateData(data: Partial<ProfileFormProps>): void {
-    console.log('🔄 ProfileForm updateData called with:', data);
 
     const hasChanges = Object.keys(data).some(key => 
       this.props[key] !== data[key as keyof ProfileFormProps]
     );
     if (!hasChanges) {
-      console.log('📝 No changes, skipping update');
       return;
     }
 
     Object.assign(this.props, data);
-    // Полностью перерендериваем форму
     const content = this.getContent();
     if (content) {
-      // const oldChildren = { ...this.children };
       content.innerHTML = this.render();
       this._removeEvents();
       this._addEvents();
@@ -91,12 +83,6 @@ export class ProfileForm extends Block {
   }
 
   public override render(): string {
-    console.log('🎨 ProfileForm render called with props:', {
-        firstName: this.props['firstName'],
-        secondName: this.props['secondName'],
-        displayName: this.props['displayName'],
-        isEditMode: this.props['isEditMode']
-    });
 
     const template = compile(templateSource);
     const context = {
@@ -113,9 +99,6 @@ export class ProfileForm extends Block {
       avatarInitials: this.props['avatarInitials'] as string || 'ИИ',
       fullName: this.props['fullName'] as string || 'Иван Иванов'
     };
-    console.log('📝 ProfileForm rendering with context:', context);
-    const result = template(context);
-    console.log('✅ ProfileForm render result length:', result.length);
     return template(context);
   }
 
@@ -135,7 +118,6 @@ export class ProfileForm extends Block {
   }
 
   public setLoading(loading: boolean): void {
-    console.log('📋 ProfileForm.setLoading called with:', loading);
 
     const content = this.getContent();
     const submitButton = content.querySelector('button[type="submit"]') as HTMLButtonElement;
@@ -144,15 +126,11 @@ export class ProfileForm extends Block {
         submitButton.disabled = true;
         submitButton.textContent = this.props['isEditMode'] ? 'Сохранение...' : 'Загрузка...';
         submitButton.classList.add('loading');
-        console.log('🔒 Button disabled');
       } else {
         submitButton.disabled = false;
         submitButton.textContent = this.props['isEditMode'] ? 'Сохранить изменения' : 'Редактировать профиль';
         submitButton.classList.remove('loading');
-        console.log('🔓 Button enabled');
       }
-    } else {
-      console.log('❌ Submit button not found')
     }
   }
 

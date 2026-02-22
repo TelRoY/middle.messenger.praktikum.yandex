@@ -44,34 +44,23 @@ export abstract class Block {
 
   console.log('Block._extractChildren input keys:', Object.keys(propsAndChildren));
 
-  // Сначала проверяем, есть ли прямой ключ 'children'
   if (propsAndChildren['children'] && typeof propsAndChildren['children'] === 'object') {
-    console.log('Found direct children object');
     const childrenObj = propsAndChildren['children'] as Record<string, any>;
     Object.entries(childrenObj).forEach(([key, value]) => {
       if (value instanceof Block) {
-        console.log(`Adding child from children object: ${key}`);
         children[key] = value;
-      } else {
-        console.warn(`Child ${key} is not a Block instance:`, typeof value);
       }
     });
-    // Удаляем children из props, чтобы не смешивать
     delete propsAndChildren['children'];
   }
 
-  // Затем проверяем остальные свойства на наличие экземпляров Block
   Object.entries(propsAndChildren).forEach(([key, value]) => {
     if (value instanceof Block) {
-      console.log(`Adding child from props: ${key}`);
       children[key] = value;
-    } else if (key !== 'children') { // Пропускаем уже обработанный ключ
+    } else if (key !== 'children') { 
       props[key] = value;
     }
   });
-
-  console.log('Block._extractChildren extracted children:', Object.keys(children));
-  console.log('Block._extractChildren extracted props:', Object.keys(props));
 
   return { children, props };
 }
@@ -142,12 +131,7 @@ export abstract class Block {
       this._removeEvents();
       this._element.innerHTML = block;
 
-      console.log('🔄 After innerHTML, element content:', this._element.innerHTML.substring(0, 200));
-      console.log('👥 Children to replace:', Object.keys(this.children));
-
       this._replacePlaceholders();
-
-      console.log('✅ After replace, element content:', this._element.innerHTML.substring(0, 200));
 
       this._addEvents();
     }
@@ -155,22 +139,16 @@ export abstract class Block {
 
   public _replacePlaceholders(): void {
     if (!this._element) {
-      console.log('❌ No element to replace placeholders');
       return;
     }
     const element = this._element;
     Object.entries(this.children).forEach(([key, child]) => {
       const placeholder = element.querySelector(`[data-id="${key}"]`);
       if (placeholder) {
-        console.log(`✅ Found placeholder for ${key}, replacing...`);
-        const childContent = child.getContent();
-        console.log(`📦 Child content for ${key}:`, childContent);
-        console.log(`✅ Replacing placeholder for ${key}`);
         placeholder.replaceWith(child.getContent());
       } else {
-        console.log(`❌ Placeholder not found for ${key}`);
         const allPlaceholders = element.querySelectorAll('[data-id]');
-        console.log('Available placeholders:', Array.from(allPlaceholders).map(el => el.getAttribute('data-id')));
+        Array.from(allPlaceholders).map(el => el.getAttribute('data-id'));
       }
     });
   }
@@ -205,7 +183,6 @@ export abstract class Block {
   }
 
   private _createDocumentElement(tagName: string): HTMLElement {
-    // Можно сделать метод, который через фрагменты в цикле создаёт сразу несколько блоков
     return document.createElement(tagName);
   }
 

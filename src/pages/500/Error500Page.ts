@@ -1,8 +1,9 @@
 import { Block } from '../../core/Block';
 import { compile } from 'handlebars';
-import templateSource from './error500.hbs';
 import { router } from '../../main';
 import { Button } from '../../components/buttons/Button';
+
+import templateSource from './error500.hbs';
 
 export class Error500Page extends Block {
   constructor() {
@@ -34,7 +35,6 @@ export class Error500Page extends Block {
   }
 
   public override show(): void {
-    console.log('👁️ Showing Error500Page');
     const content = this.getContent();
     if (content) {
       content.style.display = 'block';
@@ -42,7 +42,6 @@ export class Error500Page extends Block {
   }
 
   public override hide(): void {
-    console.log('👋 Hiding Error500Page');
     const content = this.getContent();
     if (content) {
       content.style.display = 'none';

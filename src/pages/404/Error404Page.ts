@@ -1,8 +1,9 @@
 import { Block } from '../../core/Block';
 import { compile } from 'handlebars';
-import templateSource from './error404.hbs';
 import { router } from '../../main';
 import { Button } from '../../components/buttons/Button';
+
+import templateSource from './error404.hbs';
 
 export class Error404Page extends Block {
   constructor() {
@@ -34,7 +35,6 @@ export class Error404Page extends Block {
   }
 
   public override show(): void {
-    console.log('👁️ Showing Error404Page');
     const content = this.getContent();
     if (content) {
       content.style.display = 'block';
@@ -42,7 +42,6 @@ export class Error404Page extends Block {
   }
 
   public override hide(): void {
-    console.log('👋 Hiding Error404Page');
     const content = this.getContent();
     if (content) {
       content.style.display = 'none';

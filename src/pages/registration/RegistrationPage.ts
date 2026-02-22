@@ -2,11 +2,13 @@ import { Block } from '../../core/Block';
 import { Validator } from '../../utils/Validator';
 import { AuthAPI } from '../../api/AuthAPI';
 import { compile } from 'handlebars';
-import templateSource from './registration.hbs';
 import { router } from '../../main';
+
 import { Button } from '../../components/buttons/Button';
 import { Input } from '../../components/Input/Input';
 import { RegistrationForm } from '../../components/forms/RegistrationForm';
+
+import templateSource from './registration.hbs';
 
 export class RegistrationPage extends Block {
   private validationTimeout?: NodeJS.Timeout;
@@ -123,7 +125,6 @@ export class RegistrationPage extends Block {
           if (target.closest('#login-btn')) {
             e.preventDefault();
             e.stopPropagation();
-            console.log('🔵 Login button clicked, navigating to /');
             setTimeout(() => {
               router.go('/');
             }, 50);
@@ -313,43 +314,22 @@ export class RegistrationPage extends Block {
       
       this.showSuccess('Регистрация успешно завершена!');
       
-      try {
-        const userData = await AuthAPI.login({
-          login: registrationData.login,
-          password: registrationData.password
-        });
-        
-        localStorage.setItem('user', JSON.stringify(userData));
-        localStorage.setItem('isAuthenticated', 'true');
-        
-        setTimeout(() => {
-          router.go('/messenger');
-        }, 3000);
-        
-      } catch (loginError) {
-        console.error('❌ Auto-login failed:', loginError);
-        this.showSuccess('Регистрация успешна! Теперь войдите в систему.');
-        
-        setTimeout(() => {
-          router.go('/'); // Переход на страницу авторизации
-        }, 3000);
-      }
+      const userData = await AuthAPI.login({
+        login: registrationData.login,
+        password: registrationData.password
+      });
+      
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('isAuthenticated', 'true');
+      
+      setTimeout(() => {
+        router.go('/messenger');
+      }, 3000);
       
       this.resetForm();
       
-    } catch (error) {
-      console.error('Registration error:', error);
-      
+    } catch {
       let errorMessage = 'Ошибка регистрации';
-      if (error instanceof Error) {
-        if (error.message.includes('логин')) {
-          errorMessage = 'Этот логин уже занят';
-        } else if (error.message.includes('email')) {
-          errorMessage = 'Этот email уже используется';
-        } else if (error.message.includes('phone')) {
-          errorMessage = 'Этот телефон уже используется';
-        }
-      }
       this.showGlobalError(errorMessage);
       
     } finally {
@@ -402,13 +382,11 @@ export class RegistrationPage extends Block {
   private showSuccess(message: string): void {
     const content = this.getContent();
     
-    // Удаляем предыдущее сообщение
     const oldMessage = content.querySelector('.success-message');
     if (oldMessage) {
       oldMessage.remove();
     }
     
-    // Создаем сообщение об успехе
     const messageDiv = document.createElement('div');
     messageDiv.className = 'success-message';
     messageDiv.textContent = message;
@@ -422,13 +400,11 @@ export class RegistrationPage extends Block {
     messageElement.style.color = '#2ecc71';
     messageElement.style.border = '1px solid #2ecc71';
     
-    // Вставляем сообщение перед формой
     const form = content.querySelector('form');
     if (form) {
       form.parentNode?.insertBefore(messageDiv, form);
     }
     
-    // Автоматически скрываем через 5 секунд
     setTimeout(() => {
       if (messageDiv.parentNode) {
         messageDiv.remove();
@@ -449,31 +425,22 @@ export class RegistrationPage extends Block {
   }
 
   public override show(): void {
-    console.log('👁️ Showing RegistrationPage');
     const content = this.getContent();
     if (content) {
       content.style.display = 'block';
     }
-    // super.show();
   }
 
   public override hide(): void {
-    console.log('👋 Hiding RegistrationPage');
     const content = this.getContent();
     if (content) {
       content.style.display = 'none';
     }
-    // super.hide();
   }
 
   protected override componentDidMount(): void {
-    console.log('🚀 RegistrationPage mounted');
     const content = this.getContent();
-    console.log('📄 RegistrationPage content length:', content.innerHTML.length);
-    console.log('📄 RegistrationPage content full:', content.innerHTML);
-    console.log('📄 RegistrationPage content:', content.innerHTML.substring(0, 200) + '...');
     
-    // Добавляем обработчики событий для валидации
     const firstNameInput = content.querySelector('#first_name') as HTMLInputElement;
     if (firstNameInput) {
       firstNameInput.addEventListener('blur', (e) => {
@@ -522,7 +489,6 @@ export class RegistrationPage extends Block {
       phoneInput.addEventListener('focus', () => this.clearFieldError('phone'));
     }
     
-    // Автофокус на первое поле
     setTimeout(() => firstNameInput?.focus(), 100);
   }
 }

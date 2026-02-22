@@ -7,7 +7,6 @@ export interface ErrorResponse {
 }
 
 export class ChatsAPI {
-  // Получить список чатов
   static async getChats(): Promise<Chat[]> {
     const response = await apiClient.get<ChatDTO[] | ErrorResponse>('/chats');
     
@@ -27,7 +26,6 @@ export class ChatsAPI {
     }));
   }
 
-  // Создать новый чат
   static async createChat(data: CreateChatData): Promise<{ id: number }> {
     const requestData = data as unknown as Record<string, unknown>;
     const response = await apiClient.post<{ id: number } | ErrorResponse>(
@@ -43,7 +41,6 @@ export class ChatsAPI {
     return response.data as { id: number };
   }
 
-  // Удалить чат
   static async deleteChat(chatId: number): Promise<void> {
     const response = await apiClient.delete<ErrorResponse>(
       '/chats',
@@ -56,7 +53,6 @@ export class ChatsAPI {
     }
   }
 
-  // Получить токен для подключения к WebSocket
   static async getToken(chatId: number): Promise<string> {
     const response = await apiClient.post<{ token: string } | ErrorResponse>(
       `/chats/token/${chatId}`,
@@ -71,7 +67,6 @@ export class ChatsAPI {
     return (response.data as { token: string }).token;
   }
 
-  // Получить сообщения чата
   static async getChatMessages(chatId: number): Promise<ChatMessage[]> {
     const response = await apiClient.get<MessageDTO[] | ErrorResponse>(
       `/chats/${chatId}/messages`
@@ -95,7 +90,6 @@ export class ChatsAPI {
     }));
   }
 
-  // Добавить пользователя в чат
   static async addUserToChat(data: AddUserToChatData): Promise<void> {
     const requestData = data as unknown as Record<string, unknown>;
     const response = await apiClient.put<ErrorResponse>(
@@ -109,7 +103,6 @@ export class ChatsAPI {
     }
   }
 
-  // Удалить пользователя из чата
   static async deleteUserFromChat(data: DeleteUserFromChatData): Promise<void> {
     const requestData = data as unknown as Record<string, unknown>;
     const response = await apiClient.delete<ErrorResponse>(
@@ -123,7 +116,6 @@ export class ChatsAPI {
     }
   }
 
-  // Получить пользователей чата
   static async getChatUsers(chatId: number): Promise<UserDTO[]> {
     const response = await apiClient.get<UserDTO[] | ErrorResponse>(
       `/chats/${chatId}/users`
@@ -137,7 +129,6 @@ export class ChatsAPI {
     return response.data as UserDTO[];
   }
 
-  // Загрузить аватар чата
   static async uploadChatAvatar(chatId: number, file: File): Promise<Chat> {
     const formData = new FormData();
     formData.append('avatar', file);

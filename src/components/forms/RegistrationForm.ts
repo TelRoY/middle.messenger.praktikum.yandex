@@ -4,9 +4,6 @@ import templateSource from './RegistrationForm.hbs';
 
 export class RegistrationForm extends Block {
   constructor(props: Props) {
-    console.log('🔥 RegistrationForm constructor started');
-    console.log('📦 RegistrationForm props keys:', Object.keys(props));
-    console.log('👶 RegistrationForm children in props:', props['children'] ? Object.keys(props['children'] as Record<string, any>) : 'no children');
     const events = {
       submit: (e: Event) => {
         e.preventDefault();
@@ -23,7 +20,6 @@ export class RegistrationForm extends Block {
       children,
       events
     });
-    console.log('✅ RegistrationForm constructor finished');
   }
 
   get formData(): FormData {
@@ -46,10 +42,8 @@ export class RegistrationForm extends Block {
   }
 
   public override render(): string {
-    console.log('🎨 RegistrationForm render started');
     const template = compile(templateSource);
     const children = this.getChildren();
-    console.log('📋 RegistrationForm children keys:', Object.keys(children));
     
     const context: Record<string, string> = {
       id: this.props['id'] as string || 'registration-form',
@@ -59,12 +53,7 @@ export class RegistrationForm extends Block {
     Object.keys(children).forEach(key => {
       context[key] = `<div data-id="${key}"></div>`;
     });
-    console.log('🔧 RegistrationForm context keys:', Object.keys(context));
-    console.log('🔧 RegistrationForm context keys:', Object.keys(context));
     const result = template(context);
-    console.log('📝 RegistrationForm template result length:', result.length);
-    console.log('📝 RegistrationForm template result preview:', result.substring(0, 200) + '...');
-    console.log('📝 RegistrationForm template result full:', result);
   
     return result;
   }

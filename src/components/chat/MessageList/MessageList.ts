@@ -18,11 +18,9 @@ export class MessageList extends Block {
     super('div', safeProps);
 
     this._messages = props.messages || [];
-    console.log('🏗️ MessageList constructed with', this._messages.length, 'messages');
   }
 
   public setMessages(messages: Block[]): void {
-    console.log('📋 MessageList.setMessages called with', messages?.length || 0, 'messages');
     this._messages = messages || [];
     this.setProps({ messages: this._messages });
     this.forceUpdate();
@@ -39,18 +37,12 @@ export class MessageList extends Block {
 
   public override render(): string {
     const messagesCount = this._messages?.length || 0;
-    console.log('🎨 MessageList render, messages count:', messagesCount);
 
     const template = compile(templateSource);
-    // const children = this.getChildren();
     
     const context: Record<string, any> = {
       messages: []
     };
-    
-    // if (children['messages'] && Array.isArray(children['messages'])) {
-    //   context['messages'] = children['messages'].map((_, index) => `<div data-id="messages[${index}]"></div>`);
-    // }
 
     if (messagesCount > 0) {
       context['messages'] = this._messages.map((_, index) => {
@@ -58,7 +50,6 @@ export class MessageList extends Block {
       });
     }
 
-    console.log('✅ MessageList render result includes messages:', messagesCount > 0);
     return template(context);
   }
 
@@ -67,16 +58,12 @@ export class MessageList extends Block {
 
     const messagesCount = this._messages?.length || 0;
     
-    console.log('🔍 Replacing placeholders for', messagesCount, 'messages');
-    
     if (messagesCount === 0) return;
 
     this._messages.forEach((message, index) => {
       const placeholder = this._element!.querySelector(`[data-id="messages[${index}]"]`);
       if (placeholder) {
         placeholder.replaceWith(message.getContent());
-      } else {
-        console.log(`❌ Placeholder not found for messages[${index}]`);
       }
     });
   }

@@ -29,20 +29,15 @@ export class Modal extends Block {
   }
 
   public open(): void {
-    console.log('🔓 Opening modal:', this.props['id']);
-    console.log('📦 Modal element before open:', this.getContent());
     document.body.style.overflow = 'hidden';
     this.setProps({ isOpen: true });
     const content = this.getContent();
     if (content) {
         content.classList.add('modal--open');
     }
-    console.log('📦 Modal element after open:', this.getContent());
-    console.log('📦 Modal in DOM:', document.getElementById(this.props['id'] as string));
   }
 
   public close(): void {
-    console.log('🔒 Closing modal:', this.props['id']);
     document.body.style.overflow = '';
     this.setProps({ isOpen: false });
   }
