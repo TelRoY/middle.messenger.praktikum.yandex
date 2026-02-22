@@ -62,20 +62,24 @@ export interface MessageDTO {
   } | undefined;
 }
 
+export interface ApiRequestData {
+  [key: string]: unknown;
+}
+
 export interface ChatToken {
   token: string;
 }
 
-export interface AddUserToChatData {
+export interface AddUserToChatData extends ApiRequestData {
   users: number[];
   chatId: number;
 }
 
-export interface DeleteUserFromChatData {
+export interface DeleteUserFromChatData extends ApiRequestData {
   users: number[];
   chatId: number;
 }
 
-export interface CreateChatData {
+export interface CreateChatData extends ApiRequestData {
   title: string;
 }

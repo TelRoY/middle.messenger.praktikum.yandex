@@ -1,5 +1,6 @@
-import { apiClient, HTTPClient } from '../utils/HTTPClient';
-import { checkResponse, checkResponseWithNull, ErrorResponse } from '../utils/checkResponse';
+import { api } from '../utils/apiRequest';
+import { HTTPClient } from '../utils/HTTPClient';
+import { checkResponse, ErrorResponse } from '../utils/checkResponse';
 import { User } from '../models/User';
 
 export interface LoginRequest {
@@ -107,23 +108,23 @@ export class AuthAPI {
   static async register(data: RegistrationRequest): Promise<RegistrationResponse> {
     
     const requestData = registrationRequestToRecord(data);
+    return api.post<RegistrationResponse>('/auth/signup', requestData);
+    // const response = await fetch('https://ya-praktikum.tech/api/v2/auth/signup', {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //   },
+    //   credentials: 'include',
+    //   body: JSON.stringify(requestData)
+    // });
 
-    const response = await fetch('https://ya-praktikum.tech/api/v2/auth/signup', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify(requestData)
-    });
-
-    const responseData = await response.json();
+    // const responseData = await response.json();
     
-    if (!response.ok) {
-      throw new Error(responseData.reason || 'Ошибка регистрации');
-    }
+    // if (!response.ok) {
+    //   throw new Error(responseData.reason || 'Ошибка регистрации');
+    // }
 
-    return responseData;
+    // return responseData;
   }
 
   static async logout(): Promise<void> {
@@ -148,10 +149,11 @@ export class AuthAPI {
 
   static async getCurrentUser(): Promise<ProfileResponse | null> {
     try {
-      const client = new HTTPClient('https://ya-praktikum.tech/api/v2');
-      const response = await client.get<ProfileResponse | ErrorResponse>('/auth/user');
+      return await api.get<ProfileResponse>('/auth/user');
+      // const client = new HTTPClient('https://ya-praktikum.tech/api/v2');
+      // const response = await client.get<ProfileResponse | ErrorResponse>('/auth/user');
 
-      return checkResponseWithNull<ProfileResponse>(response);
+      // return checkResponseWithNull<ProfileResponse>(response);
     } catch {
       return null;
     }
@@ -159,43 +161,45 @@ export class AuthAPI {
 
   static async updateProfile(data: ProfileUpdateRequest): Promise<ProfileResponse> {
     const requestData = profileUpdateRequestToRecord(data);
+    return api.put<ProfileResponse>('/user/profile', requestData);
+    // const response = await apiClient.put<ProfileResponse | ErrorResponse>(
+    //   '/user/profile',
+    //   requestData
+    // );
     
-    const response = await apiClient.put<ProfileResponse | ErrorResponse>(
-      '/user/profile',
-      requestData
-    );
-    
-    return checkResponse<ProfileResponse>(response);
+    // return checkResponse<ProfileResponse>(response);
   }
 
   static async changePassword(oldPassword: string, newPassword: string): Promise<void> {
     const requestData = changePasswordToRecord(oldPassword, newPassword);
+    await api.put<void>('/user/password', requestData);
     
-    const response = await apiClient.put<ErrorResponse>(
-      '/user/password',
-      requestData
-    );
-    return checkResponse<void>(response);
+    // const response = await apiClient.put<ErrorResponse>(
+    //   '/user/password',
+    //   requestData
+    // );
+    // return checkResponse<void>(response);
   }
 
   static async updateAvatar(avatar: File): Promise<ProfileResponse> {
     const formData = new FormData();
     formData.append('avatar', avatar);
-
-    const response = await apiClient.put<ProfileResponse | ErrorResponse>(
-      '/user/profile/avatar',
-      formData,
-    );
+    return api.put<ProfileResponse>('/user/profile/avatar', formData);
+    // const response = await apiClient.put<ProfileResponse | ErrorResponse>(
+    //   '/user/profile/avatar',
+    //   formData,
+    // );
     
-    return checkResponse<ProfileResponse>(response);
+    // return checkResponse<ProfileResponse>(response);
   }
 
   static async searchUsers(login: string): Promise<User[]> {
-    const response = await apiClient.post<User[] | ErrorResponse>(
-      '/user/search',
-      { login }
-    );
+    return api.post<User[]>('/user/search', { login });
+    // const response = await apiClient.post<User[] | ErrorResponse>(
+    //   '/user/search',
+    //   { login }
+    // );
 
-    return checkResponse<User[]>(response);
+    // return checkResponse<User[]>(response);
   }
 }

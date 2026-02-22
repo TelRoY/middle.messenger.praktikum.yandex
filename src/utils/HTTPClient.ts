@@ -146,11 +146,13 @@ export class HTTPClient {
 
   delete<T = unknown>(
     url: string,
-    options?: { data?: Record<string, unknown> } & Omit<HTTPRequestOptions, 'method' | 'data'>
+    options?: { data?: HTTPRequestData } & Omit<HTTPRequestOptions, 'method' | 'data'>
   ): Promise<HTTPResponse<T>> {
+    const { data, ...rest } = options || {};
     return this.request<T>(url, {
-      ...options,
+      ...rest,
       method: HTTPMethod.DELETE,
+      ...(data && { data })
     });
   }
 
