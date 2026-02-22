@@ -10,14 +10,10 @@ const loadPartials = (partialsDir: string) => {
   const partials: Record<string, string> = {};
 
   const registerPartial = (name: string, content: string) => {
-    try {
-      // Проверяем синтаксис перед регистрацией
-      Handlebars.compile(content);
-      partials[name] = content;
-      Handlebars.registerPartial(name, content);
-    } catch (error) {
-      console.error(`✗ Ошибка в partial ${name}:`, (error as Error).message);
-    }
+    // Проверяем синтаксис перед регистрацией
+    Handlebars.compile(content);
+    partials[name] = content;
+    Handlebars.registerPartial(name, content);
   };
 
   const readPartialsRecursive = (dir: string, prefix = "") => {
@@ -111,12 +107,12 @@ function createHandlebarsPlugin(options: HandlebarsPluginOptions = {}) {
             ...context,
             pageName: path.basename(filename, ".html"),
             menuItems: [
-              { title: "Авторизация", url: "/authorization" },
-              { title: "Регистрация", url: "/registration" },
-              { title: "Главная", url: "/home.html" },
-              { title: "Профиль", url: "/profile" },
-              { title: "404", url: "/404.html" },
-              { title: "500", url: "/500.html" },
+              { title: "Авторизация", url: "/" },
+              { title: "Регистрация", url: "/sign-up" },
+              { title: "Главная", url: "/messenger" },
+              { title: "Профиль", url: "/settings" },
+              { title: "404", url: "/404" },
+              { title: "500", url: "/500" },
             ],
           };
 
@@ -131,10 +127,10 @@ function createHandlebarsPlugin(options: HandlebarsPluginOptions = {}) {
         } catch (error) {
           console.error(error instanceof Error ? error.message : String(error));
           const safeHtml = html
-            .replace(/\{\{[\s\S]*?\}\}/g, "") // Удаляем все {{...}}
-            .replace(/\{\{#[\s\S]*?\}\}/g, "") // Удаляем все {{#...}}
-            .replace(/\{\{\/[\s\S]*?\}\}/g, "") // Удаляем все {{/...}}
-            .replace(/\{\{>[\s\S]*?\}\}/g, ""); // Удаляем все {{>...}}
+            .replace(/\{\{[\s\S]*?\}\}/g, "") 
+            .replace(/\{\{#[\s\S]*?\}\}/g, "") 
+            .replace(/\{\{\/[\s\S]*?\}\}/g, "") 
+            .replace(/\{\{>[\s\S]*?\}\}/g, "");
           return safeHtml;
         }
       },
@@ -152,9 +148,6 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, "index.html"),
-        home: resolve(__dirname, "src/pages/home/home.html"),
-        error404: resolve(__dirname, "src/pages/404/404.html"),
-        error500: resolve(__dirname, "src/pages/500/500.html"),
       },
     },
   },
