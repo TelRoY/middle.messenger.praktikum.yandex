@@ -38,7 +38,6 @@ export class HTTPClient {
 
   constructor(baseURL: string = 'https://ya-praktikum.tech/api/v2') {
     this.baseURL = baseURL;
-    console.log('🚀 HTTPClient created with baseURL:', this.baseURL);
   }
 
   async request<T = unknown>(
@@ -50,8 +49,6 @@ export class HTTPClient {
     if (params) {
       fullUrl += `?${queryStringify(params)}`;
     }
-    console.log(`🌐 Full URL: ${fullUrl}`);
-    console.log(`📨 HTTP Request: ${method} ${fullUrl}`, { data, headers, baseURL: this.baseURL });
     
     const requestHeaders: Record<string, string> = {
       ...headers
@@ -89,12 +86,6 @@ export class HTTPClient {
             responseData = await response.text();
           }
 
-          console.log(`📥 HTTP Response: ${method} ${fullUrl}`, {
-            status: response.status,
-            ok: response.ok,
-            data: responseData
-          });
-
           const result: HTTPResponse<T> = {
             ok: response.ok,
             status: response.status,
@@ -107,8 +98,6 @@ export class HTTPClient {
         })
         .catch((error) => {
           clearTimeout(timeoutId);
-
-          console.error(`❌ HTTP Error: ${method} ${fullUrl}`, error);
           
           if (error.name === 'AbortError') {
             reject(new Error(`Request timeout after ${timeout}ms`));

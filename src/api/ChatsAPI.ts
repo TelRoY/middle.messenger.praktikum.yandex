@@ -1,21 +1,13 @@
 import { apiClient } from '../utils/HTTPClient';
+import { checkResponse, ErrorResponse } from '../utils/checkResponse';
 import { Chat, ChatDTO, ChatMessage, MessageDTO, AddUserToChatData, DeleteUserFromChatData, CreateChatData } from '../models/Chat';
 import { UserDTO } from '../models/User';
 
-export interface ErrorResponse {
-  reason: string;
-}
-
 export class ChatsAPI {
   static async getChats(): Promise<Chat[]> {
-    const response = await apiClient.get<ChatDTO[] | ErrorResponse>('/chats');
-    
-    if (!response.ok) {
-      const error = response.data as ErrorResponse;
-      throw new Error(error.reason || 'Ошибка получения списка чатов');
-    }
-    
+    const response = await apiClient.get<ChatDTO[] | ErrorResponse>('/chats');   
     const chats = response.data as ChatDTO[];
+
     return chats.map(chat => ({
       id: chat.id,
       title: chat.title,
@@ -33,12 +25,7 @@ export class ChatsAPI {
       requestData
     );
     
-    if (!response.ok) {
-      const error = response.data as ErrorResponse;
-      throw new Error(error.reason || 'Ошибка создания чата');
-    }
-    
-    return response.data as { id: number };
+    return checkResponse<{ id: number }>(response);
   }
 
   static async deleteChat(chatId: number): Promise<void> {
@@ -46,11 +33,8 @@ export class ChatsAPI {
       '/chats',
       { data: { chatId } as Record<string, unknown> }
     );
-    
-    if (!response.ok) {
-      const error = response.data as ErrorResponse;
-      throw new Error(error.reason || 'Ошибка удаления чата');
-    }
+
+    checkResponse<void>(response);
   }
 
   static async getToken(chatId: number): Promise<string> {
@@ -58,26 +42,17 @@ export class ChatsAPI {
       `/chats/token/${chatId}`,
       {}
     );
-    
-    if (!response.ok) {
-      const error = response.data as ErrorResponse;
-      throw new Error(error.reason || 'Ошибка получения токена');
-    }
-    
-    return (response.data as { token: string }).token;
+    const data = checkResponse<{ token: string }>(response);
+
+    return data.token;
   }
 
   static async getChatMessages(chatId: number): Promise<ChatMessage[]> {
     const response = await apiClient.get<MessageDTO[] | ErrorResponse>(
       `/chats/${chatId}/messages`
     );
-    
-    if (!response.ok) {
-      const error = response.data as ErrorResponse;
-      throw new Error(error.reason || 'Ошибка получения сообщений');
-    }
-    
-    const messages = response.data as MessageDTO[];
+    const messages = checkResponse<MessageDTO[]>(response);
+
     return messages.map(msg => ({
       id: msg.id,
       user_id: msg.user_id,
@@ -97,10 +72,7 @@ export class ChatsAPI {
       requestData
     );
     
-    if (!response.ok) {
-      const error = response.data as ErrorResponse;
-      throw new Error(error.reason || 'Ошибка добавления пользователя');
-    }
+    checkResponse<void>(response);
   }
 
   static async deleteUserFromChat(data: DeleteUserFromChatData): Promise<void> {
@@ -109,11 +81,8 @@ export class ChatsAPI {
       '/chats/users',
       { data: requestData }
     );
-    
-    if (!response.ok) {
-      const error = response.data as ErrorResponse;
-      throw new Error(error.reason || 'Ошибка удаления пользователя');
-    }
+
+    checkResponse<void>(response);
   }
 
   static async getChatUsers(chatId: number): Promise<UserDTO[]> {
@@ -121,12 +90,7 @@ export class ChatsAPI {
       `/chats/${chatId}/users`
     );
     
-    if (!response.ok) {
-      const error = response.data as ErrorResponse;
-      throw new Error(error.reason || 'Ошибка получения пользователей чата');
-    }
-    
-    return response.data as UserDTO[];
+    return checkResponse<UserDTO[]>(response);
   }
 
   static async uploadChatAvatar(chatId: number, file: File): Promise<Chat> {
@@ -139,12 +103,7 @@ export class ChatsAPI {
       formData
     );
     
-    if (!response.ok) {
-      const error = response.data as ErrorResponse;
-      throw new Error(error.reason || 'Ошибка загрузки аватара');
-    }
-    
-    const chat = response.data as ChatDTO;
+    const chat = checkResponse<ChatDTO>(response);
     return {
       id: chat.id,
       title: chat.title,

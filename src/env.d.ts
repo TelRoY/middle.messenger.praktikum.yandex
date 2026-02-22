@@ -15,7 +15,6 @@ declare module '*.css' {
   export default content;
 }
 
-// Для TypeScript в браузере
 interface ImportMetaEnv {
   readonly VITE_APP_TITLE: string;
 }

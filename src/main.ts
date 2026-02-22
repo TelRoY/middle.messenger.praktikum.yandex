@@ -30,30 +30,24 @@ Handlebars.registerHelper('eq', function(arg1, arg2) {
 
 export const router = new Router('#app');
 
-// Проверка авторизации при загрузке
 store.initAuth().then(() => {
   const currentPath = window.location.pathname;
   const user = store.getState().user;
 
-  // Защита роутов
   if (user) {
     if (currentPath === '/' || currentPath === '/sign-up') {
-      console.log('User authenticated, redirecting to messenger');
       router.go('/messenger');
     }
   } else {
     if (currentPath !== '/' && currentPath !== '/sign-up') {
-      console.log('User not authenticated, redirecting to login');
       router.go('/');
     }
   }
 });
 
 store.on(StoreEvents.UPDATED, (prevState: any, nextState: any) => {
-  console.log('Store updated:', nextState);
   
   if (!nextState.user && prevState.user) {
-    console.log('User logged out, redirecting to login');
     router.go('/');
   }
 });

@@ -1,4 +1,5 @@
 import { apiClient, HTTPClient } from '../utils/HTTPClient';
+import { checkResponse, checkResponseWithNull, ErrorResponse } from '../utils/checkResponse';
 import { User } from '../models/User';
 
 export interface LoginRequest {
@@ -48,11 +49,6 @@ export interface ProfileResponse extends User {
   email: string;
   phone: string;
   avatar: string;
-}
-
-export interface ErrorResponse {
-  reason: string;
-  errors?: Record<string, string> | undefined;
 }
 
 function loginRequestToRecord(data: LoginRequest): Record<string, string> {
@@ -105,12 +101,7 @@ export class AuthAPI {
       requestData
     );
     
-    if (!response.ok) {
-      const error = response.data as ErrorResponse;
-      throw new Error(error.reason || 'Ошибка авторизации');
-    }
-    
-    return response.data as LoginResponse;
+    return checkResponse<LoginResponse>(response);
   }
 
   static async register(data: RegistrationRequest): Promise<RegistrationResponse> {
@@ -136,16 +127,13 @@ export class AuthAPI {
   }
 
   static async logout(): Promise<void> {
-
     try {
       const client = new HTTPClient('https://ya-praktikum.tech/api/v2');
       const response = await client.post<ErrorResponse>('/auth/logout', {});
     
-      if (!response.ok) {
-        if (response.status !== 401) {
-          const error = response.data as ErrorResponse;
-          throw new Error(error.reason || 'Ошибка при выходе');
-        }
+      if (!response.ok && response.status !== 401) {
+        const error = response.data as ErrorResponse;
+        throw new Error(error.reason || 'Ошибка при выходе');
       }
     } finally {
       localStorage.removeItem('user');
@@ -163,13 +151,9 @@ export class AuthAPI {
       const client = new HTTPClient('https://ya-praktikum.tech/api/v2');
       const response = await client.get<ProfileResponse | ErrorResponse>('/auth/user');
 
-      if (!response.ok) {
-        return null;
-      }
-
-      return response.data as ProfileResponse;
+      return checkResponseWithNull<ProfileResponse>(response);
     } catch {
-      throw null;
+      return null;
     }
   }
 
@@ -181,12 +165,7 @@ export class AuthAPI {
       requestData
     );
     
-    if (!response.ok) {
-      const error = response.data as ErrorResponse;
-      throw new Error(error.reason || 'Ошибка обновления профиля');
-    }
-    
-    return response.data as ProfileResponse;
+    return checkResponse<ProfileResponse>(response);
   }
 
   static async changePassword(oldPassword: string, newPassword: string): Promise<void> {
@@ -196,11 +175,7 @@ export class AuthAPI {
       '/user/password',
       requestData
     );
-    
-    if (!response.ok) {
-      const error = response.data as ErrorResponse;
-      throw new Error(error.reason || 'Ошибка смены пароля');
-    }
+    return checkResponse<void>(response);
   }
 
   static async updateAvatar(avatar: File): Promise<ProfileResponse> {
@@ -212,12 +187,7 @@ export class AuthAPI {
       formData,
     );
     
-    if (!response.ok) {
-      const error = response.data as ErrorResponse;
-      throw new Error(error.reason || 'Ошибка обновления аватара');
-    }
-    
-    return response.data as ProfileResponse;
+    return checkResponse<ProfileResponse>(response);
   }
 
   static async searchUsers(login: string): Promise<User[]> {
@@ -225,12 +195,7 @@ export class AuthAPI {
       '/user/search',
       { login }
     );
-    
-    if (!response.ok) {
-      const error = response.data as ErrorResponse;
-      throw new Error(error.reason || 'Ошибка поиска пользователей');
-    }
-    const users = response.data as User[];
-    return users;
+
+    return checkResponse<User[]>(response);
   }
 }

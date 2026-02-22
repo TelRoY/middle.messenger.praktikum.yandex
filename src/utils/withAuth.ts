@@ -12,7 +12,6 @@ export function withAuth(Component: typeof Block) {
 
       store.on(StoreEvents.UPDATED, this.handleStoreUpdate.bind(this));
       
-      // Проверяем авторизацию
       if (!store.getState().user) {
         router.go('/');
       }
