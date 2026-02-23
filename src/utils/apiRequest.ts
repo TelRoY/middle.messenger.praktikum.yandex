@@ -13,7 +13,14 @@ export async function apiRequest<T>(
     options: RequestOptions = {}
   ): Promise<T> {
     const { method = HTTPMethod.GET, data, params } = options;
-  
+
+    console.log(`📤 API Request: ${method} ${url}`, { 
+      data: JSON.stringify(data), 
+      params,
+      headers: {
+        'Content-Type': data instanceof FormData ? 'multipart/form-data' : 'application/json'
+      }
+    });
     
     const requestOptions: Parameters<typeof apiClient.request>[1] = { method, data };
     

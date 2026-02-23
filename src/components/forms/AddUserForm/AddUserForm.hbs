@@ -26,7 +26,7 @@
       <h4>Найденные пользователи:</h4>
       <ul class="search-results__list">
         {{#each searchResults}}
-          <li class="search-results__item">
+          <li class="search-results__item" data-user-id="{{id}}">
             <span>{{first_name}} {{second_name}} (@{{login}})</span>
             <button 
               type="button" 

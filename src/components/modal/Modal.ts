@@ -55,6 +55,10 @@ export class Modal extends Block {
       context[key] = `<div data-id="${key}"></div>`;
     });
 
+    if (Object.keys(children).length === 0) {
+      context['body'] = '<div></div>';
+    }
+
     return template(context);
   }
 }
