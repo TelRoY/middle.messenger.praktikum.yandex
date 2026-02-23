@@ -1,6 +1,10 @@
 <li class="chat-item {{#if active}}chat-item--active{{/if}}" data-chat-id="{{id}}">
   <div class="chat-item__avatar">
-    <div class="chat-item__avatar-placeholder">{{avatar}}</div>
+    {{#if isImageAvatar}}
+      <img src="{{avatar}}" alt="{{name}}" class="chat-item__avatar-img">
+    {{else}}
+      <div class="chat-item__avatar-placeholder">{{avatar}}</div>
+    {{/if}}
   </div>
 
   <div class="chat-item__content">

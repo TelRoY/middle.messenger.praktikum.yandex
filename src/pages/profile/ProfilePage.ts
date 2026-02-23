@@ -231,21 +231,29 @@ export class ProfilePage extends Block {
   }
 
   private async handleAvatarChange(file: File): Promise<void> {
+    console.log('📁 handleAvatarChange called with file:', file.name, file.type, file.size);
+
     if (!file.type.startsWith('image/')) {
+      console.log('❌ Not an image:', file.type);
       this.showMessage('Пожалуйста, выберите изображение', 'error');
       return;
     }
     
     try {
       this.setLoading(true);
+      console.log('🔄 Uploading avatar...');
+
       const updatedUser = await AuthAPI.updateAvatar(file);
+      console.log('✅ Avatar uploaded, response:', updatedUser);
+
       this.userData = updatedUser;
 
       const children = this.getChildren();
       const profileForm = children['profileForm'] as ProfileForm;
       if (profileForm) {
-        profileForm.updateAvatar(updatedUser.avatar);
+        console.log('🔄 Updating avatar in form');
       }
+
       this.showMessage('Аватар обновлен!', 'success');
     } catch {
       this.showMessage('Ошибка при загрузке аватара', 'error');

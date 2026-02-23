@@ -17,7 +17,6 @@ import { AddUserForm } from '../../components/forms/AddUserForm/AddUserForm';
 import { WebSocketTransport } from '../../utils/WebSocket';
 import store, { StoreEvents } from '../../store/Store';
 import { ChatMessage } from '../../models/Chat';
-// import { User } from '../../models/User';
 
 import templateSource from './messenger.hbs';
 
@@ -46,7 +45,6 @@ export class MessengerPage extends Block {
   private currentUserInitials: string = '';
   private isLoadingChats: boolean = false;
   private addUserModal: Modal;
-  // private addUserForm: AddUserForm;
 
   constructor() {
 
@@ -167,6 +165,19 @@ export class MessengerPage extends Block {
     if (user && user.id) {
       this.currentUserId = user.id;
       this.currentUserInitials = (user.first_name?.[0] || 'И') + (user.second_name?.[0] || 'И');
+    }
+
+    const storedChats = store.getState().chats;
+    if (storedChats && storedChats.length > 0) {
+      this.chats = storedChats.map(chat => ({
+        id: chat.id,
+        name: chat.title,
+        avatar: chat.avatar || (chat.title?.[0] || 'Ч'),
+        lastMessage: chat.last_message?.content || 'Нет сообщений',
+        time: chat.last_message ? new Date(chat.last_message.time).toLocaleTimeString() : '',
+        unreadCount: chat.unread_count || 0
+      }));
+      this.updateChatList();
     }
     
     store.on(StoreEvents.UPDATED, this.handleStoreUpdate.bind(this));
@@ -359,12 +370,6 @@ export class MessengerPage extends Block {
     }
 
     console.log('✅ Selected chat:', selectedChat.name);
-    
-    // const chatExists = this.chats?.some(chat => chat.id === chatId);
-    // if (!chatExists) {
-    //   return;
-    // }
-
     this.currentChatId = chatId;
     
     const token = await ChatsAPI.getToken(chatId);
@@ -400,25 +405,6 @@ export class MessengerPage extends Block {
 
     console.log('✅ ChatHeader updated');
 
-    // const currentChat = this.chats.find(c => c.id === chatId)!;
-    
-    // if (currentChat) {
-    //   console.log('🔄 Updating chat header:', currentChat.name);
-    //   const newChatHeader = new ChatHeader({
-    //     title: currentChat.name,
-    //     avatar: currentChat.avatar,
-    //     status: messages.length > 0 ? 'Online' : 'New chat'
-    //   });
-
-    //   this.chatHeader = newChatHeader;
-
-    //   this.setProps({
-    //     children: {
-    //       ...this.getChildren(),
-    //       chatHeader: this.chatHeader
-    //     }
-    //   });
-    // }
     this.forceUpdateChatHeader(selectedChat.name, selectedChat.avatar, messages.length > 0 ? 'Online' : 'New chat');
 
     this.updateMessagesList(messages);
@@ -509,6 +495,7 @@ export class MessengerPage extends Block {
         }));
       
       this.chats = processedChats;
+      store.setState({ chats: chatsData });
       this.updateChatList();
 
       if (this.currentChatId && !this.chats.some(c => c.id === this.currentChatId)) {
@@ -691,7 +678,6 @@ export class MessengerPage extends Block {
       chatId: this.currentChatId,
       currentUserId: this.currentUserId,
       onAddUser: (userId: number) => this.handleAddUser(userId),
-      // onRemoveUser: (userId: number) => this.handleRemoveUser(userId),
       onClose: () => this.addUserModal.close()
     });
   

@@ -109,22 +109,6 @@ export class AuthAPI {
     
     const requestData = registrationRequestToRecord(data);
     return api.post<RegistrationResponse>('/auth/signup', requestData);
-    // const response = await fetch('https://ya-praktikum.tech/api/v2/auth/signup', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   credentials: 'include',
-    //   body: JSON.stringify(requestData)
-    // });
-
-    // const responseData = await response.json();
-    
-    // if (!response.ok) {
-    //   throw new Error(responseData.reason || 'Ошибка регистрации');
-    // }
-
-    // return responseData;
   }
 
   static async logout(): Promise<void> {
@@ -150,10 +134,6 @@ export class AuthAPI {
   static async getCurrentUser(): Promise<ProfileResponse | null> {
     try {
       return await api.get<ProfileResponse>('/auth/user');
-      // const client = new HTTPClient('https://ya-praktikum.tech/api/v2');
-      // const response = await client.get<ProfileResponse | ErrorResponse>('/auth/user');
-
-      // return checkResponseWithNull<ProfileResponse>(response);
     } catch {
       return null;
     }
@@ -162,44 +142,31 @@ export class AuthAPI {
   static async updateProfile(data: ProfileUpdateRequest): Promise<ProfileResponse> {
     const requestData = profileUpdateRequestToRecord(data);
     return api.put<ProfileResponse>('/user/profile', requestData);
-    // const response = await apiClient.put<ProfileResponse | ErrorResponse>(
-    //   '/user/profile',
-    //   requestData
-    // );
-    
-    // return checkResponse<ProfileResponse>(response);
   }
 
   static async changePassword(oldPassword: string, newPassword: string): Promise<void> {
     const requestData = changePasswordToRecord(oldPassword, newPassword);
     await api.put<void>('/user/password', requestData);
-    
-    // const response = await apiClient.put<ErrorResponse>(
-    //   '/user/password',
-    //   requestData
-    // );
-    // return checkResponse<void>(response);
   }
 
   static async updateAvatar(avatar: File): Promise<ProfileResponse> {
+    console.log('🖼️ Updating avatar, file:', avatar.name, avatar.size);
+
     const formData = new FormData();
     formData.append('avatar', avatar);
-    return api.put<ProfileResponse>('/user/profile/avatar', formData);
-    // const response = await apiClient.put<ProfileResponse | ErrorResponse>(
-    //   '/user/profile/avatar',
-    //   formData,
-    // );
-    
-    // return checkResponse<ProfileResponse>(response);
+    try {
+      const response = await api.put<ProfileResponse>('/user/profile/avatar', formData);
+      console.log('✅ Avatar updated successfully, response:', response);
+      console.log('🖼️ Avatar URL from response:', response.avatar);
+      return response;
+    } catch (error) {
+      console.error('❌ Failed to update avatar:', error);
+      throw error;
+    }
+    // return api.put<ProfileResponse>('/user/profile/avatar', formData);
   }
 
   static async searchUsers(login: string): Promise<User[]> {
     return api.post<User[]>('/user/search', { login });
-    // const response = await apiClient.post<User[] | ErrorResponse>(
-    //   '/user/search',
-    //   { login }
-    // );
-
-    // return checkResponse<User[]>(response);
   }
 }

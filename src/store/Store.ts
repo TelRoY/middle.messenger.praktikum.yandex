@@ -20,6 +20,8 @@ export enum StoreEvents {
   UPDATED = 'updated'
 }
 
+const STORAGE_KEY = 'app_store';
+
 class Store extends EventBus {
   private state: State = {
     user: null,
@@ -35,6 +37,42 @@ class Store extends EventBus {
 
   constructor() {
     super();
+    this.loadFromStorage();
+  }
+
+  private loadFromStorage(): void {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        this.state = {
+          ...this.state,
+          ...parsed,
+          isLoading: false,
+          error: null
+        };
+        console.log('📦 Store loaded from storage:', this.state);
+      }
+    } catch (error) {
+      console.error('Failed to load store from storage:', error);
+    }
+  }
+
+  private saveToStorage(): void {
+    try {
+      const toSave = {
+        user: this.state.user,
+        chats: this.state.chats,
+        currentChat: {
+          id: this.state.currentChat.id,
+          messages: [], 
+          token: null 
+        }
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+    } catch (error) {
+      console.error('Failed to save store to storage:', error);
+    }
   }
 
   public getState(): State {
@@ -44,6 +82,9 @@ class Store extends EventBus {
   public setState(nextState: Partial<State>): void {
     const prevState = { ...this.state };
     this.state = { ...this.state, ...nextState };
+    
+    this.saveToStorage();
+    
     this.emit(StoreEvents.UPDATED, prevState, this.state);
   }
 
@@ -91,6 +132,7 @@ class Store extends EventBus {
     try {
       await AuthAPI.logout();
       this.setState({ user: null, chats: [], currentChat: { id: null, messages: [], token: null }, isLoading: false });
+      localStorage.removeItem(STORAGE_KEY);
     } catch (error) {
       this.setState({ isLoading: false, error: (error as Error).message });
       throw error;

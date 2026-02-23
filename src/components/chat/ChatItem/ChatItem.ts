@@ -29,6 +29,17 @@ export class ChatItem extends Block {
 
   public override render(): string {
     const template = compile(templateSource);
-    return template(this.props);
+
+    const isImageAvatar = this.props['avatar'] && (
+      typeof this.props['avatar'] === 'string' && 
+      (this.props['avatar'].startsWith('http') || 
+       this.props['avatar'].startsWith('data:image') ||
+       this.props['avatar'].startsWith('/'))
+    );
+
+    return template({
+      ...this.props,
+      isImageAvatar
+    });
   }
 }

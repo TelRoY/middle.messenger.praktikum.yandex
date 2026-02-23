@@ -7,10 +7,16 @@
         <div class="avatar-placeholder">{{avatarInitials}}</div>
       {{/if}}
       {{#if isEditMode}}
-        <label for="avatar-input" class="avatar-upload-btn">
+        <div class="avatar-upload-btn">
           <span>Изменить фото</span>
-          <input type="file" id="avatar-input" name="avatar" accept="image/*" style="display: none;">
-        </label>
+        </div>
+        <input 
+          type="file" 
+          id="avatar-input" 
+          name="avatar" 
+          accept="image/*" 
+          style="display: none;"
+        >
       {{/if}}
     </div>
   </div>

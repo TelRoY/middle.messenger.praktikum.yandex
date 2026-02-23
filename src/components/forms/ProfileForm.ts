@@ -22,6 +22,8 @@ export interface ProfileFormProps extends Props {
 
 export class ProfileForm extends Block {
   constructor(props: ProfileFormProps) {
+    console.log('🏗️ ProfileForm constructor called with props:', props);
+
     const events: Record<string, EventListener> = {
       submit: (e: Event) => {
         e.preventDefault();
@@ -39,22 +41,35 @@ export class ProfileForm extends Block {
           }
           return;
         }
+
          if (target.classList.contains('avatar-upload-btn') || target.closest('.avatar-upload-btn')) {
             e.preventDefault();
+            e.stopPropagation(); 
+
+            console.log('🖱️ Avatar upload button clicked');
+
             const content = this.getContent();
             const fileInput = content.querySelector('#avatar-input') as HTMLInputElement;
             if (fileInput) {
+              console.log('📁 Triggering file input click');
               fileInput.click();
+            } else {
+              console.log('File input not found');
             }
             return;
           }
         },
         change: (e: Event) => {
           const target = e.target as HTMLInputElement;
+          console.log('📁 Change event on input:', target.id, target.files?.length);
+
           if (target.id === 'avatar-input' && target.files && target.files[0]) {
+            console.log('📁 File selected:', target.files[0].name, target.files[0].type, target.files[0].size);
+            
             if (props.onAvatarChange) {
               props.onAvatarChange(target.files[0]);
             }
+            target.value = '';
           }
         }
       };
@@ -62,6 +77,7 @@ export class ProfileForm extends Block {
       ...props,
       events
     });
+    console.log('📋 ProfileForm events registered');
   }
 
   public updateData(data: Partial<ProfileFormProps>): void {
@@ -133,8 +149,23 @@ export class ProfileForm extends Block {
       }
     }
   }
-
-  public updateAvatar(avatarUrl: string): void {
-    this.updateData({ avatar: avatarUrl });
+  public updateAvatarWithFile(file: File): void {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      
+      const content = this.getContent();
+      if (!content) return;
+      
+      const avatarContainer = content.querySelector('.avatar-container');
+      if (!avatarContainer) return;
+      
+      avatarContainer.innerHTML = `
+        <img src="${dataUrl}" alt="Аватар" class="avatar-img" style="width: 100%; height: 100%; object-fit: cover;">
+        ${this.props['isEditMode'] ? '<div class="avatar-upload-btn"><span>Изменить фото</span></div>' : ''}
+        <input type="file" id="avatar-input" name="avatar" accept="image/*" style="display: none;">
+      `;
+    };
+    reader.readAsDataURL(file);
   }
 }
