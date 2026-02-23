@@ -443,11 +443,6 @@ export class MessengerPage extends Block {
       case 'delete-chat':
         this.handleDeleteChat();
         break;
-      case 'leave':
-        if (confirm('Покинуть чат?')) {
-          // TODO: реализовать выход из чата
-        }
-        break;
       case 'logout':
         this.handleLogout();
         break;
