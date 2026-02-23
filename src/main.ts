@@ -12,7 +12,7 @@ import "./components/chat/MessageInput/MessageInput.css";
 import "./components/ui/SearchInput.css";
 import "./components/ui/DropDownMenu.css";
 import "./components/modal/modal.css";
-import "./components/forms/AddUserForm/AddUserForm.css";
+import "./components/forms/UserManagementForm/UserManagmentForm.css";
 
 import Handlebars from 'handlebars';
 import { Router } from './core/Router';

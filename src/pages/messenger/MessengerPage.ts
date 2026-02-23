@@ -12,7 +12,7 @@ import { Message as MessageComponent } from '../../components/chat/Message/Messa
 import { MessageInput } from '../../components/chat/MessageInput/MessageInput';
 import { Modal } from '../../components/modal/Modal';
 import { CreateChatForm } from '../../components/forms/CreateChatForm/CreateChatForm';
-import { AddUserForm } from '../../components/forms/AddUserForm/AddUserForm';
+import { UserManagementForm } from '../../components/forms/UserManagementForm/UserManagementForm';
 
 import { WebSocketTransport } from '../../utils/WebSocket';
 import store, { StoreEvents } from '../../store/Store';
@@ -30,18 +30,8 @@ interface Chat {
   active?: boolean;
 }
 
-// class EmptyBlock extends Block {
-//   constructor() {
-//     super('div', {});
-//   }
-//   override render(): string {
-//     return '<div class="empty-modal-content">Загрузка...</div>';
-//   }
-// }
-
 export class MessengerPage extends Block {
   private chatHeader: ChatHeader;
-  // private chatItem: ChatItem;
   private chatList: ChatList;
   private messageList: MessageList;
   private messageInput: MessageInput;
@@ -54,7 +44,6 @@ export class MessengerPage extends Block {
   private currentUserId: number = 0;
   private currentUserInitials: string = '';
   private isLoadingChats: boolean = false;
-  // private addUserModal: Modal;
 
   constructor() {
     
@@ -63,14 +52,6 @@ export class MessengerPage extends Block {
       avatar: '',
       status: ''
     });
-
-    // const chatItem = new ChatItem({
-    //   id: 0,
-    //   name: '',
-    //   avatar: '',
-    //   time: '',
-    //   lastMessage: ''
-    // });
 
     const chatList = new ChatList({
       items: []
@@ -101,18 +82,6 @@ export class MessengerPage extends Block {
       }
     });
 
-    // const emptyBlock = new EmptyBlock();
-
-    const addUserModal = new Modal({
-      id: 'add-user-form',
-      title: 'Управление чатом',
-      isOpen: false,
-      onClose: () => this.addUserModal.close(),
-      children: {
-        // body: emptyBlock
-      }
-    });
-
     super('div', {
       children: {
         chatList,
@@ -120,7 +89,6 @@ export class MessengerPage extends Block {
         messageList,
         messageInput,
         createChatModal,
-        addUserModal
       },
       events: {
         click: (e: Event) => {
@@ -163,12 +131,10 @@ export class MessengerPage extends Block {
 
     this.chatHeader = chatHeader;
     this.chatList = chatList;
-    // this.chatItem = chatItem;
     this.messageList = messageList;
     this.messageInput = messageInput;
     this.createChatForm = createChatForm;
     this.createChatModal = createChatModal;
-    // this.addUserModal = addUserModal;
     this.chats = [];
     
     const user = store.getState().user;
@@ -436,12 +402,9 @@ export class MessengerPage extends Block {
       case 'new-chat':
         this.createChatModal.open();
         break;
-      case 'add-user':
+      case 'manage-user':
         this.openUserManagementModal();
-        break;
-      case 'remove-user':
-        // this.openUserManagementModal();
-        break;        
+        break;   
       case 'settings':
         router.go('/settings');
         break;
@@ -619,23 +582,18 @@ export class MessengerPage extends Block {
       return;
     }
   
-    // Подтверждение удаления
     const confirmDelete = confirm('Вы уверены, что хотите удалить этот чат? Это действие нельзя отменить.');
     if (!confirmDelete) return;
   
     try {
       console.log('🗑️ Deleting chat', this.currentChatId);
       
-      // Вызываем API для удаления чата
       await ChatsAPI.deleteChat(this.currentChatId);
       
-      // Удаляем чат из локального списка
       this.chats = this.chats.filter(chat => chat.id !== this.currentChatId);
       
-      // Очищаем текущий чат
       this.currentChatId = null;
       
-      // Обновляем заголовок
       const newChatHeader = new ChatHeader({
         title: 'Выберите чат',
         avatar: '',
@@ -651,13 +609,10 @@ export class MessengerPage extends Block {
         }
       });
   
-      // Очищаем сообщения
       this.updateMessagesList([]);
       
-      // Обновляем список чатов
       this.updateChatList();
       
-      // Закрываем WebSocket соединение если было
       if (this.wsTransport) {
         this.wsTransport.close();
         this.wsTransport = null;
@@ -673,8 +628,8 @@ export class MessengerPage extends Block {
   private async openUserManagementModal(): Promise<void> {
     if (!this.currentChatId) return;
   
-    const addUserForm = new AddUserForm({
-      id: 'add-user-form',
+    const form = new UserManagementForm({
+      id: 'user-management-form',
       chatId: this.currentChatId,
       currentUserId: this.currentUserId,
       onAddUser: async (userId: number) => {
@@ -683,19 +638,39 @@ export class MessengerPage extends Block {
             users: [userId],
             chatId: this.currentChatId!
           });
+          
+          const updatedUsers = await ChatsAPI.getChatUsers(this.currentChatId!);
+          form.updateUsers(updatedUsers);
+          
           alert('Пользователь добавлен');
-          document.getElementById('temp-user-modal')?.remove();
         } catch (error) {
           alert('Ошибка: ' + (error instanceof Error ? error.message : 'Неизвестная ошибка'));
         }
       },
+      onRemoveUser: async (userId: number) => {
+        if (confirm('Удалить пользователя из чата?')) {
+          try {
+            await ChatsAPI.deleteUserFromChat({
+              users: [userId],
+              chatId: this.currentChatId!
+            });
+            
+            const updatedUsers = await ChatsAPI.getChatUsers(this.currentChatId!);
+            form.updateUsers(updatedUsers);
+            
+            alert('Пользователь удален');
+          } catch (error) {
+            alert('Ошибка: ' + (error instanceof Error ? error.message : 'Неизвестная ошибка'));
+          }
+        }
+      },
       onClose: () => {
-        document.getElementById('temp-user-modal')?.remove();
+        document.getElementById('user-management-modal')?.remove();
       }
     });
   
     const modal = document.createElement('div');
-    modal.id = 'temp-user-modal';
+    modal.id = 'user-management-modal';
     modal.className = 'modal modal--open';
     
     const overlay = document.createElement('div');
@@ -713,7 +688,7 @@ export class MessengerPage extends Block {
     
     const body = document.createElement('div');
     body.className = 'modal__body';
-    body.appendChild(addUserForm.getContent());
+    body.appendChild(form.getContent());
     
     content.appendChild(header);
     content.appendChild(body);
@@ -722,7 +697,6 @@ export class MessengerPage extends Block {
     
     document.body.appendChild(modal);
   
-    // Закрытие по клику на overlay или кнопку закрытия
     modal.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
       if (target.classList.contains('modal__overlay') || 
@@ -732,110 +706,13 @@ export class MessengerPage extends Block {
     });
   }
 
-  // private async openUserManagementModal(): Promise<void> {
-  //   if (!this.currentChatId) {
-  //     alert('Сначала выберите чат');
-  //     return;
-  //   };
-
-  //   console.log('🔄 Opening user management for chat', this.currentChatId);
-
-  //   const newAddUserForm = new AddUserForm({
-  //     id: 'add-user-form' + Date.now(),
-  //     chatId: this.currentChatId,
-  //     currentUserId: this.currentUserId,
-  //     // onAddUser: handleAddUser,
-  //     onAddUser: async (userId: number) => {
-  //       console.log('🔥 DIRECT HANDLER called with userId:', userId);
-  //       console.log('📋 currentChatId:', this.currentChatId);
-  //       if (!this.currentChatId) {
-  //         alert('Чат не выбран');
-  //         return;
-  //       }
-
-  //       // this.handleAddUser(userId);
-  //       try {
-  //         console.log('Sending API request');
-  //         await ChatsAPI.addUserToChat({
-  //           users: [userId],
-  //           chatId: this.currentChatId
-  //         });
-  //         console.log('User added');
-  //         alert('Пользователь добавлен');
-  //         this.addUserModal.close();
-  //       } catch (error) {
-  //         console.error('Error:', error);
-  //         alert('Ошибка: ' + (error instanceof Error ? error.message : 'Неизвестная ошибка'));
-  //       }
-  //     },
-  //     onRemoveUser: (userId: number) => {
-  //       console.log('📞 onRemoveUser callback triggered with userId:', userId);
-  //       this.handleRemoveUser(userId);
-  //     },
-  //     onClose: () => {
-  //       console.log('📞 onClose callback');
-  //       this.addUserModal.close();
-  //     }
-  //   });
-  
-  //   this.addUserModal.setProps({
-  //     children: {
-  //       body: newAddUserForm
-  //     }
-  //   });
-  
-  //   setTimeout(() => {
-  //     this.addUserModal.open();
-  //   }, 50);
-  // }
-
-  // private handleAddUser = async (userId: number): Promise<void> => {
-  //   console.log('🔥🔥🔥 handleAddUser FIRED with userId:', userId);
-  //   console.log('🔥🔥🔥 this:', this);
-  //   console.log('🔥🔥🔥 handleAddUser STARTED with userId:', userId);
-  //   console.log('🔥🔥🔥 this inside handleAddUser:', this);
-  //   console.log('🔥🔥🔥 handleAddUser FIRED with userId: ' + userId, 'background: red; color: white; font-size: 16px');
-  //   console.log('📋 this.currentChatId:', this.currentChatId);
-  //   console.log('📋 this.currentUserId:', this.currentUserId);
-
-  //   if (!this.currentChatId) {
-  //     console.error('❌ No current chat ID');
-  //     alert('Чат не выбран');
-  //     return;
-  //   }
-    
-  //   try {
-  //     console.log('📤 Sending API request to add user', userId, 'to chat', this.currentChatId);
-  //     console.log('📤 Request data:', { users: [userId], chatId: this.currentChatId });
-
-  //     await ChatsAPI.addUserToChat({
-  //       users: [userId],
-  //       chatId: this.currentChatId
-  //     });
-
-  //     console.log('✅ User added successfully!');
-  //     alert('Пользователь добавлен');
-  //     this.addUserModal.close();
-      
-  //   } catch (error) {
-  //     console.error('❌ Error in handleAddUser:', error);
-  //     console.error('❌ Error details:', {
-  //       message: error instanceof Error ? error.message : 'Unknown error',
-  //       stack: error instanceof Error ? error.stack : undefined
-  //     });
-  //     alert('Ошибка: ' + (error instanceof Error ? error.message : 'Неизвестная ошибка'));
-  //   }
-  // }
-
   private forceUpdateChatHeader(title: string, avatar: string, status: string): void {
     console.log('🔄 Force updating chat header with title:', title);
     
-    // Находим элемент заголовка в DOM
     const content = this.getContent();
     const headerElement = content.querySelector('.chat-header');
     
     if (headerElement) {
-      // Обновляем текст напрямую
       const titleElement = headerElement.querySelector('.chat-title');
       const avatarElement = headerElement.querySelector('.chat-avatar-placeholder');
       const statusElement = headerElement.querySelector('.chat-online-status');
@@ -847,26 +724,6 @@ export class MessengerPage extends Block {
       console.log('✅ Chat header updated directly in DOM');
     } else {
       console.log('❌ Chat header element not found');
-    }
-  }
-
-  private async handleRemoveUser(userId: number): Promise<void> {
-    if (!this.currentChatId) return;
-    
-    try {
-      console.log('➖ Removing user', userId, 'from chat', this.currentChatId);
-      
-      await ChatsAPI.deleteUserFromChat({
-        users: [userId],
-        chatId: this.currentChatId
-      });
-      
-      alert('Пользователь удален');
-      this.addUserModal.close();
-      
-    } catch (error) {
-      console.error('❌ Failed to remove user:', error);
-      alert('Ошибка при удалении пользователя');
     }
   }
 

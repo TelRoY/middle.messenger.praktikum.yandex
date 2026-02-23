@@ -51,7 +51,6 @@ class Store extends EventBus {
           isLoading: false,
           error: null
         };
-        console.log('📦 Store loaded from storage:', this.state);
       }
     } catch (error) {
       console.error('Failed to load store from storage:', error);

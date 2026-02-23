@@ -1,0 +1,75 @@
+<form class="user-management-form" id="{{id}}">
+  <div class="form-group">
+    <label for="user-login" class="form-label">Добавить пользователя</label>
+    <input
+      type="text"
+      id="user-login"
+      name="login"
+      class="form-input"
+      placeholder="Введите логин (мин. 3 символа)"
+      autocomplete="off"
+      value="{{searchValue}}"
+    />
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="component-button component-button--primary">
+      {{#if isLoading}}Поиск...{{else}}Найти{{/if}}
+    </button>
+  </div>
+
+  {{#if searchResults.length}}
+    <div class="search-results">
+      <h4>Найденные пользователи:</h4>
+      <ul class="search-results__list">
+        {{#each searchResults}}
+          <li class="search-results__item" data-user-id="{{id}}">
+            <span>{{first_name}} {{second_name}} (@{{login}})</span>
+            <button 
+              type="button" 
+              class="search-results__add" 
+              data-action="add-user" 
+              data-user-id="{{id}}">
+              Добавить
+            </button>
+          </li>
+        {{/each}}
+      </ul>
+    </div>
+  {{/if}}
+
+  <div class="chat-users-section">
+    <h4>Участники чата ({{chatUsers.length}}):</h4>
+    {{#if chatUsers.length}}
+      <ul class="chat-users__list">
+        {{#each chatUsers}}
+          <li class="chat-users__item" data-user-id="{{id}}">
+            <div class="chat-users__info">
+              <span class="chat-users__name">{{first_name}} {{second_name}}</span>
+              <span class="chat-users__login">@{{login}}</span>
+            </div>
+            {{#if (eq id @root.currentUserId)}}
+              <span class="chat-users__badge">Это вы</span>
+            {{else}}
+              <button 
+                type="button" 
+                class="chat-users__remove" 
+                data-action="remove-user" 
+                data-user-id="{{id}}">
+                Удалить
+              </button>
+            {{/if}}
+          </li>
+        {{/each}}
+      </ul>
+    {{else}}
+      <p class="chat-users-empty">В чате пока нет других участников</p>
+    {{/if}}
+  </div>
+
+  <div class="form-actions">
+    <button type="button" class="component-button component-button--secondary" data-action="close">
+      Закрыть
+    </button>
+  </div>
+</form>

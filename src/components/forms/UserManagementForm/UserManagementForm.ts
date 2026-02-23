@@ -1,11 +1,11 @@
 import { Block, Props } from '../../../core/Block';
 import { compile } from 'handlebars';
-import templateSource from './AddUserForm.hbs';
+import templateSource from './UserManagementForm.hbs';
 import { AuthAPI } from '../../../api/AuthAPI';
 import { ChatsAPI } from '../../../api/ChatsAPI';
 import { User } from '../../../models/User';
 
-export interface AddUserFormProps extends Props {
+export interface UserManagementFormProps extends Props {
   id?: string;
   chatId: number;
   currentUserId: number;
@@ -14,14 +14,14 @@ export interface AddUserFormProps extends Props {
   onClose?: () => void;
 }
 
-export class AddUserForm extends Block {
+export class UserManagementForm extends Block {
   private searchResults: User[] = [];
   private chatUsers: User[] = [];
   private isLoading: boolean = false;
   private searchTimeout: NodeJS.Timeout | null = null;
   private searchValue: string = '';
 
-  constructor(props: AddUserFormProps) {
+  constructor(props: UserManagementFormProps) {
     super('div', {
       ...props,
       events: {
@@ -50,70 +50,37 @@ export class AddUserForm extends Block {
         },
         click: async (e: Event) => {
           const target = e.target as HTMLElement;
-          console.log('🖱️ Click on:', target.className, target.tagName, target.getAttribute('data-action'));
-                    
+          
           const addButton = target.closest('[data-action="add-user"]');
           if (addButton) {
             e.preventDefault();
             e.stopPropagation();
-
             const userId = addButton.getAttribute('data-user-id');
-            console.log('➕ Add user button clicked, userId:', userId);
-            console.log('📞 onAddUser exists:', !!props.onAddUser);
-
             if (userId && props.onAddUser) {
-              console.log('✅ Calling onAddUser now...');
               props.onAddUser(parseInt(userId));
-              console.log('✅ onAddUser completed');
-            } else {
-              console.log('❌ onAddUser not available or userId missing');
             }
             return;
           }
-  
+          
           const removeButton = target.closest('[data-action="remove-user"]');
           if (removeButton) {
             e.preventDefault();
             e.stopPropagation();
-
             const userId = removeButton.getAttribute('data-user-id');
-            console.log('➖ Remove user button clicked, userId:', userId);
-
             if (userId && props.onRemoveUser) {
               props.onRemoveUser(parseInt(userId));
             }
             return;
           }
-  
+          
           const closeButton = target.closest('[data-action="close"]');
           if (closeButton) {
             e.preventDefault();
             e.stopPropagation();
-
             if (props.onClose) {
               props.onClose();
             }
             return;
-          }
-        
-          if (target.closest('[data-action="add-user"]')) {
-            const userId = target.closest('[data-user-id]')?.getAttribute('data-user-id');
-            if (userId && props.onAddUser) {
-              props.onAddUser(parseInt(userId));
-            }
-          }
-          
-          if (target.closest('[data-action="remove-user"]')) {
-            const userId = target.closest('[data-user-id]')?.getAttribute('data-user-id');
-            if (userId && props.onRemoveUser) {
-              props.onRemoveUser(parseInt(userId));
-            }
-          }
-          
-          if (target.closest('[data-action="close"]')) {
-            if (props.onClose) {
-              props.onClose();
-            }
           }
         }
       }
@@ -123,35 +90,33 @@ export class AddUserForm extends Block {
   }
 
   private async loadChatUsers(): Promise<void> {
-    const props = this.props as AddUserFormProps;
-    console.log('📋 Loading users for chat', props.chatId);
-    
+    const props = this.props as UserManagementFormProps;
     try {
       const users = await ChatsAPI.getChatUsers(props.chatId);
-      console.log('✅ Loaded users:', users);
       this.chatUsers = users;
       this.forceUpdate();
     } catch (error) {
-      console.error('❌ Failed to load chat users:', error);
+      console.error('Failed to load chat users:', error);
     }
   }
 
   private async handleSearch(): Promise<void> {
-    console.log('🔍 Searching for:', this.searchValue);
-    
+    if (this.searchValue.length < 3) {
+      this.searchResults = [];
+      this.forceUpdate();
+      return;
+    }
+
     this.isLoading = true;
     this.forceUpdate();
 
     try {
       const users = await AuthAPI.searchUsers(this.searchValue);
-      console.log('✅ Search results:', users);
-      
-      // Фильтруем пользователей, которые уже в чате
       this.searchResults = users.filter(user => 
         !this.chatUsers.some(chatUser => chatUser.id === user.id)
       );
     } catch (error) {
-      console.error('❌ Search failed:', error);
+      console.error('Search failed:', error);
       this.searchResults = [];
     } finally {
       this.isLoading = false;
@@ -159,24 +124,23 @@ export class AddUserForm extends Block {
     }
   }
 
-  // public addUser(user: User): void {
-  //   this.chatUsers = [...this.chatUsers, user];
-  //   this.searchResults = this.searchResults.filter(u => u.id !== user.id);
-  //   this.forceUpdate();
-  // }
+  public addUser(user: User): void {
+    this.chatUsers = [...this.chatUsers, user];
+    this.searchResults = this.searchResults.filter(u => u.id !== user.id);
+    this.forceUpdate();
+  }
 
-  // public removeUser(userId: number): void {
-  //   this.chatUsers = this.chatUsers.filter(u => u.id !== userId);
-  //   this.forceUpdate();
-  // }
+  public removeUser(userId: number): void {
+    this.chatUsers = this.chatUsers.filter(u => u.id !== userId);
+    this.forceUpdate();
+  }
 
-  // public updateUsers(users: User[]): void {
-  //   this.chatUsers = users;
-  //   this.forceUpdate();
-  // }
+  public updateUsers(users: User[]): void {
+    this.chatUsers = users;
+    this.forceUpdate();
+  }
 
   public forceUpdate(): void {
-    console.log('🔄 Force update, searchValue:', this.searchValue);
     const content = this.getContent();
     if (content) {
       content.innerHTML = this.render();
@@ -191,10 +155,10 @@ export class AddUserForm extends Block {
 
   public override render(): string {
     const template = compile(templateSource);
-    const props = this.props as AddUserFormProps;
+    const props = this.props as UserManagementFormProps;
     
     return template({
-      id: props.id || 'add-user-form',
+      id: props.id || 'user-management-form',
       searchResults: this.searchResults,
       chatUsers: this.chatUsers,
       currentUserId: props.currentUserId,
