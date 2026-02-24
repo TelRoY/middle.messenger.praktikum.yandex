@@ -64,20 +64,36 @@ export class WebSocketTransport {
   }
 
   private handleMessage(event: MessageEvent): void {
-    const data = JSON.parse(event.data);
+    try {
+      const data = JSON.parse(event.data);
 
-    if (Array.isArray(data)) {
-      const messages = data.map((msg: undefined) => this.formatMessage(msg));
-      store.addMessages(this.chatId, messages);
-    } else if (data.type === 'pong') {
-      return;
-    } else if (data.type === 'user connected') {
-      this.notifyStatus(`user ${data.content} connected`);
-    } else {
+      if (Array.isArray(data)) {
+        const messages = data.map((msg: undefined) => this.formatMessage(msg));
+        store.addMessages(this.chatId, messages);
+        return;
+      } 
+
+      if (data.type === 'pong') {
+        return;
+      } 
+
+      if (data.type === 'user connected') {
+        this.notifyStatus(`user ${data.content} connected`);
+        return;
+      }
+            
       const message = this.formatMessage(data);
       store.addMessage(this.chatId, message);
-      
       this.messageHandlers.forEach(handler => handler(message));
+      
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        console.error('Invalid JSON received:', event.data);
+      } else if (error instanceof Error) {
+        console.error('Error handling message:', error.message);
+      } else {
+        console.error('Unknown error:', error);
+      }
     }
   }
 

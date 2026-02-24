@@ -5,7 +5,6 @@ export interface RequestOptions {
   method?: HTTPMethod;
   data?: HTTPRequestData;
   params?: Record<string, string | number | boolean>;
-  withAuth?: boolean;
 }
 
 export async function apiRequest<T>(
@@ -14,11 +13,11 @@ export async function apiRequest<T>(
   ): Promise<T> {
     const { method = HTTPMethod.GET, data, params } = options;
     
-    const requestOptions: Parameters<typeof apiClient.request>[1] = { method, data };
-    
-    if (params) {
-        requestOptions.params = params;
-    }
+    const requestOptions: Parameters<typeof apiClient.request>[1] = { 
+      method, 
+      data,
+      ...(params && { params })
+    };
 
     const response = await apiClient.request<T | ErrorResponse>(url, requestOptions);
 
@@ -30,7 +29,6 @@ export async function apiRequest<T>(
     return response.data as T;
   }
 
-// Специальные методы для разных типов запросов
 export const api = {
   get: <T>(url: string, params?: Record<string, string | number | boolean>) =>
     apiRequest<T>(url, { method: HTTPMethod.GET, ...(params && { params }) }),

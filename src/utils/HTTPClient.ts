@@ -33,10 +33,12 @@ function queryStringify(data: Record<string, string | number | boolean>): string
     .join('&');
 }
 
+export const BASE_URL = 'https://ya-praktikum.tech/api/v2';
+
 export class HTTPClient {
   private baseURL: string;
 
-  constructor(baseURL: string = 'https://ya-praktikum.tech/api/v2') {
+  constructor(baseURL: string = BASE_URL) {
     this.baseURL = baseURL;
   }
 
@@ -169,4 +171,4 @@ export class HTTPClient {
   }
 }
 
-export const apiClient = new HTTPClient('https://ya-praktikum.tech/api/v2');
+export const apiClient = new HTTPClient();

@@ -1,5 +1,5 @@
 import { api } from '../utils/apiRequest';
-import { HTTPClient } from '../utils/HTTPClient';
+import { apiClient } from '../utils/HTTPClient';
 import { checkResponse, ErrorResponse } from '../utils/checkResponse';
 import { User } from '../models/User';
 
@@ -96,8 +96,7 @@ export class AuthAPI {
     
 
     const requestData = loginRequestToRecord(data);
-    const client = new HTTPClient('https://ya-praktikum.tech/api/v2');
-    const response = await client.post<LoginResponse | ErrorResponse>(
+    const response = await apiClient.post<LoginResponse | ErrorResponse>(
       '/auth/signin',
       requestData
     );
@@ -113,8 +112,7 @@ export class AuthAPI {
 
   static async logout(): Promise<void> {
     try {
-      const client = new HTTPClient('https://ya-praktikum.tech/api/v2');
-      const response = await client.post<ErrorResponse>('/auth/logout', {});
+      const response = await apiClient.post<ErrorResponse>('/auth/logout', {});
     
       if (!response.ok && response.status !== 401) {
         const error = response.data as ErrorResponse;
@@ -163,7 +161,6 @@ export class AuthAPI {
       console.error('❌ Failed to update avatar:', error);
       throw error;
     }
-    // return api.put<ProfileResponse>('/user/profile/avatar', formData);
   }
 
   static async searchUsers(login: string): Promise<User[]> {
