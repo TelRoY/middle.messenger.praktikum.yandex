@@ -757,17 +757,19 @@ export class MessengerPage extends Block {
     const headerElement = content.querySelector('.chat-header');
     
     if (headerElement) {
-      const titleElement = headerElement.querySelector('.chat-title');
-      const avatarElement = headerElement.querySelector('.chat-avatar-placeholder');
-      const statusElement = headerElement.querySelector('.chat-online-status');
-      
-      if (titleElement) titleElement.textContent = title;
-      if (avatarElement) avatarElement.textContent = avatar;
-      if (statusElement) statusElement.textContent = status;
-      
-      console.log('✅ Chat header updated directly in DOM');
-    } else {
-      console.log('❌ Chat header element not found');
+      const newChatHeader = new ChatHeader({ title, avatar, status });
+      const newHeaderHtml = newChatHeader.render();
+
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = newHeaderHtml;
+      const newHeaderElement = tempDiv.firstElementChild;
+
+      if (newHeaderElement) {
+        headerElement.replaceWith(newHeaderElement);
+
+        this._removeEvents();
+        this._addEvents();
+      }
     }
   }
 

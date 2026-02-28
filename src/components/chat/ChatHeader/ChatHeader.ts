@@ -1,6 +1,7 @@
 import { Block, Props } from '../../../core/Block';
 import { compile } from 'handlebars';
 import templateSource from './ChatHeader.hbs';
+import { BASE_URL } from '../../../utils/HTTPClient';
 
 export interface ChatHeaderProps extends Props {
   title: string;
@@ -10,23 +11,34 @@ export interface ChatHeaderProps extends Props {
 
 export class ChatHeader extends Block {
   constructor(props: ChatHeaderProps) {
-    console.log('🏗️ ChatHeader constructor called with props:', props);
     super('div', props);
   }
 
   public override render(): string {
-    console.log('🎨 ChatHeader rendering with props:', {
-      title: this.props['title'],
-      avatar: this.props['avatar'],
-      status: this.props['status']
-    });
-
     const template = compile(templateSource);
-    const result = template(this.props);
 
-    console.log('✅ ChatHeader HTML:', result);
-    console.log('✅ Title in HTML:', result.includes(this.props['title'] as string));
-    return result;
-    // return template(this.props);
+    let avatar = this.props['avatar'] as string;
+    let isImageAvatar = false;
+
+    console.log('🎨 ChatHeader rendering with avatar:', avatar);
+
+    if (avatar && typeof avatar === 'string') {
+      if (avatar.startsWith('/')) {
+        avatar = `${BASE_URL}/resources${avatar}`
+      }
+
+      isImageAvatar = avatar.startsWith('https') || avatar.startsWith('data:image');
+      console.log('🖼️ isImageAvatar:', isImageAvatar, 'avatar:', avatar);
+    }
+
+    const context = {
+      title: this.props['title'],
+      avatar: avatar,
+      status: this.props['status'],
+      isImageAvatar
+    };
+
+    console.log('📦 ChatHeader context:', context);
+    return template(context);
   }
 }

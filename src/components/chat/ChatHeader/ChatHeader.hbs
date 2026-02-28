@@ -1,6 +1,12 @@
 <div class="chat-header">
   <div class="chat-info">
-    <div class="chat-avatar-placeholder">{{avatar}}</div>
+    <div class="chat-avatar">
+      {{#if isImageAvatar}}
+        <img src="{{avatar}}" alt="{{title}}" class="chat-avatar-img">
+      {{else}}
+        <div class="chat-avatar-placeholder">{{avatar}}</div>
+      {{/if}}
+    </div>
     <div>
       <h2 class="chat-title">{{title}}</h2>
       <div class="chat-online-status">{{status}}</div>
