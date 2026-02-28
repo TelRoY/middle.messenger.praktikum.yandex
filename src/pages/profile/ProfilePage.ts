@@ -3,6 +3,7 @@ import { Validator } from '../../utils/Validator';
 import { AuthAPI, ProfileResponse } from '../../api/AuthAPI';
 import { compile } from 'handlebars';
 import { router } from '../../main';
+import { BASE_URL } from '../../utils/HTTPClient';
 
 import { ProfileForm } from '../../components/forms/ProfileForm';
 
@@ -202,6 +203,7 @@ export class ProfilePage extends Block {
       }
 
       if (this.profileForm) {
+
         this.profileForm.updateData({
           isEditMode: false,
           firstName: updatedUser.first_name || '',
@@ -233,6 +235,11 @@ export class ProfilePage extends Block {
       return;
     }
     
+    if (file.size > 2 * 1024 * 1024) {
+      this.showMessage('Изображение должно быть меньше 2MB', 'error');
+      return;
+    }
+
     try {
       this.setLoading(true);
       console.log('🔄 Uploading avatar...');
@@ -242,12 +249,15 @@ export class ProfilePage extends Block {
 
       this.userData = updatedUser;
 
+      const avatarUrl = `${BASE_URL}/resources${updatedUser.avatar}`;
+    
       const children = this.getChildren();
       const profileForm = children['profileForm'] as ProfileForm;
       if (profileForm) {
-        console.log('🔄 Updating avatar in form');
+        console.log('🔄 Updating avatar in form with URL:', updatedUser.avatar);
+        
+        profileForm.updateAvatar(avatarUrl);
       }
-
       this.showMessage('Аватар обновлен!', 'success');
     } catch {
       this.showMessage('Ошибка при загрузке аватара', 'error');

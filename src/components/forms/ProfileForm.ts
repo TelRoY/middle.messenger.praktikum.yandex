@@ -1,5 +1,6 @@
 import { Block, Props } from '../../core/Block';
 import { compile } from 'handlebars';
+import { BASE_URL } from '../../utils/HTTPClient';
 import templateSource from './ProfileForm.hbs';
 
 export interface ProfileFormProps extends Props {
@@ -82,9 +83,14 @@ export class ProfileForm extends Block {
 
   public updateData(data: Partial<ProfileFormProps>): void {
 
+    if (data.avatar && typeof data.avatar === 'string' && data.avatar.startsWith('/')) {
+      data.avatar = `${BASE_URL}/resources${data.avatar}`;
+    }
+
     const hasChanges = Object.keys(data).some(key => 
       this.props[key] !== data[key as keyof ProfileFormProps]
     );
+
     if (!hasChanges) {
       return;
     }
@@ -115,6 +121,7 @@ export class ProfileForm extends Block {
       avatarInitials: this.props['avatarInitials'] as string || 'ИИ',
       fullName: this.props['fullName'] as string || 'Иван Иванов'
     };
+    console.log('🎨 Rendering ProfileForm with avatar:', context.avatar);
     return template(context);
   }
 
@@ -149,23 +156,28 @@ export class ProfileForm extends Block {
       }
     }
   }
-  public updateAvatarWithFile(file: File): void {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const dataUrl = e.target?.result as string;
+
+  public updateAvatar(avatarUrl: string): void {
+    console.log('🔄 ProfileForm.updateAvatar called with URL:', avatarUrl);
+    
+    this.setProps({ avatar: avatarUrl });
+    
+    const content = this.getContent();
+    if (content) {
+      content.innerHTML = this.render();
+      this._removeEvents();
+      this._addEvents();
       
-      const content = this.getContent();
-      if (!content) return;
-      
-      const avatarContainer = content.querySelector('.avatar-container');
-      if (!avatarContainer) return;
-      
-      avatarContainer.innerHTML = `
-        <img src="${dataUrl}" alt="Аватар" class="avatar-img" style="width: 100%; height: 100%; object-fit: cover;">
-        ${this.props['isEditMode'] ? '<div class="avatar-upload-btn"><span>Изменить фото</span></div>' : ''}
-        <input type="file" id="avatar-input" name="avatar" accept="image/*" style="display: none;">
-      `;
-    };
-    reader.readAsDataURL(file);
+      const img = content.querySelector('.avatar-img') as HTMLImageElement;
+      if (img) {
+        img.onload = () => {
+          console.log('✅ Avatar image loaded successfully');
+        };
+        img.onerror = (e) => {
+          console.error('❌ Avatar image failed to load:', e);
+          console.error('❌ Failed URL:', img.src);
+        };
+      }
+    }
   }
 }
