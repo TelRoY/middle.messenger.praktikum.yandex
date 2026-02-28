@@ -17,6 +17,7 @@ import { BASE_URL } from '../../utils/HTTPClient';
 import { WebSocketTransport } from '../../utils/WebSocket';
 import store, { StoreEvents } from '../../store/Store';
 import { ChatMessage } from '../../models/Chat';
+import { User } from '../../models/User';
 
 import templateSource from './messenger.hbs';
 
@@ -446,6 +447,7 @@ export class MessengerPage extends Block {
         if (user && user.id) {
           this.currentUserId = user.id;
           this.currentUserInitials = (user.first_name?.[0] || 'И') + (user.second_name?.[0] || 'И');
+          this.currentUserAvatar = user.avatar;
         } else {
           this.isLoadingChats = false;
           if (!this.userCheckStarted) {
@@ -461,16 +463,38 @@ export class MessengerPage extends Block {
         return;
       }
 
-      const processedChats = chatsData
-        .filter(chat => chat != null)
-        .map(chat => ({
-          id: chat.id,
-          name: chat.title || 'Без названия',
-          avatar: chat.avatar || (chat.title?.[0] || 'Ч'),
-          lastMessage: chat.last_message?.content || 'Нет сообщений',
-          time: chat.last_message ? new Date(chat.last_message.time).toLocaleTimeString() : '',
-          unreadCount: chat.unread_count || 0
-        }));
+      const processedChats = await Promise.all(
+        chatsData
+          .filter(chat => chat != null)
+          .map(async (chat) => {
+            let chatName = chat.title;
+            let chatAvatar = chat.avatar;
+            if (!chat.avatar) {
+              try {
+                const users = await ChatsAPI.getChatUsers(chat.id);
+                const otherUser = users.find(u => u.id !== this.currentUserId);
+                if (otherUser) {
+                  chatName = `${otherUser.first_name} ${otherUser.second_name}`;
+                  chatAvatar = otherUser.avatar;
+                }
+              } catch (error) {
+                console.error('Failed to get chat users:', error);
+              }
+            }
+
+            const fullAvatar = chatAvatar 
+              ? (chatAvatar.startsWith('http') ? chatAvatar : `${BASE_URL}/resources${chatAvatar}`)
+              : (chatName[0] || 'Ч');
+            return {
+              id: chat.id,
+              name: chatName,
+              avatar: fullAvatar,
+              lastMessage: chat.last_message?.content || 'Нет сообщений',
+              time: chat.last_message ? new Date(chat.last_message.time).toLocaleTimeString() : '',
+              unreadCount: chat.unread_count || 0
+            };
+          })
+        );
       
       this.chats = processedChats;
       store.setState({ chats: chatsData });
@@ -566,23 +590,34 @@ export class MessengerPage extends Block {
   }
 
   private async handleCreateChat(title: string, userLogin?: string): Promise<void> {
-    const result = await ChatsAPI.createChat({ title });
-    if (userLogin && userLogin.trim()) {
-      const users = await AuthAPI.searchUsers(userLogin);
-      if (users.length > 0) {
-        const user = users[0];
-        if (user) {
-          await ChatsAPI.addUserToChat({
-            users: [user.id],
-            chatId: result.id
-          });
+    
+    try{
+      let chatTitle = title;
+      let userForChat: User | null = null;
+
+      if (userLogin && userLogin.trim()) {
+        const users = await AuthAPI.searchUsers(userLogin);
+        if (users.length > 0 && users[0]) {
+          userForChat = users[0];
+          chatTitle = `${userForChat.first_name} ${userForChat.second_name}`;
         }
       }
-    }
-    this.createChatModal.close();
-    this.createChatForm.reset();
+      const result = await ChatsAPI.createChat({ title: chatTitle });
+      console.log('✅ Chat created:', result);
+      if (userForChat) {
+        await ChatsAPI.addUserToChat({
+          users: [userForChat.id],
+          chatId: result.id
+        });
+      }
+
+      this.createChatModal.close();
+      this.createChatForm.reset();
     
-    await this.loadChats();
+      await this.loadChats();
+    } catch (error) {
+      console.error('❌ Failed to create chat:', error);
+    }
   }
 
   private async handleDeleteChat(): Promise<void> {
