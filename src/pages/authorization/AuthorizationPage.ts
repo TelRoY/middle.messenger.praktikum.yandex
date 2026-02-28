@@ -7,6 +7,7 @@ import store from '../../store/Store';
 import { Button } from '../../components/buttons/Button';
 import { Input } from '../../components/Input/Input';
 import { Form } from '../../components/forms/Form';
+import { Footer } from '../../components/footer/Footer';
 
 import templateSource from './authorization.hbs';
 
@@ -68,9 +69,12 @@ export class AuthorizationPage extends Block {
       }
     });
 
+    const footer = new Footer();
+
     super('div', {
       children: {
-        form: form
+        form: form,
+        footer: footer
       },
       events: {
         click: (e: Event) => {

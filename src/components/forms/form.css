@@ -14,3 +14,99 @@ form {
     font-size: var(--font-size-sm);
   }
 }
+
+.profile-form {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.avatar-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.avatar-container {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 48px;
+  font-weight: 600;
+}
+
+.profile-info {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.profile-name {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.profile-display-name {
+  color: var(--color-text-light);
+  font-size: 16px;
+}
+
+.form-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.password-section {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  color: var(--color-text);
+}
+
+.profile-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 32px;
+  justify-content: center;
+}
+
+.form-input--readonly {
+  background-color: var(--color-background);
+  cursor: default;
+}
+
+.form-input--readonly:focus {
+  outline: none;
+  border-color: var(--color-border);
+}
+
+.registration-form {
+  margin-bottom: var(--spacing-lg);
+}
