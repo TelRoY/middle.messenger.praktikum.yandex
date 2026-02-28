@@ -136,17 +136,17 @@
   </div>
 
   <div class="profile-actions">
-    <button type="submit" class="component-button {{#if isEditMode}}component-button--primary{{else}}component-button--secondary{{/if}}">
+    <button type="submit" class="button {{#if isEditMode}}button--primary{{else}}button--secondary{{/if}}">
       {{#if isEditMode}}Сохранить изменения{{else}}Редактировать профиль{{/if}}
     </button>
     
     {{#if isEditMode}}
-      <button type="button" id="cancel-edit" class="component-button component-button--secondary">
+      <button type="button" id="cancel-edit" class="button button--secondary">
         Отмена
       </button>
     {{/if}}
     
-    <button type="button" id="back-home" class="component-button component-button--link">
+    <button type="button" id="back-home" class="button button--home">
       На главную
     </button>
   </div>

@@ -57,13 +57,7 @@ export class ProfilePage extends Block {
         click: (e: Event) => {
           const target = e.target as HTMLElement;
 
-          if (target.id === 'back-home') {
-            e.preventDefault();
-            e.stopPropagation();
-            router.go('/messenger');
-          }
-
-          if (target.classList.contains('component-button--link')) {
+          if (target.classList.contains('button--home')) {
             e.preventDefault();
             e.stopPropagation();
             router.go('/messenger');

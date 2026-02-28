@@ -46,14 +46,14 @@ export class AuthorizationPage extends Block {
       type: 'submit',
       variant: 'primary',
       text: 'Авторизация',
-      className: 'component-button component-button--authorization'
+      className: 'button--authorization'
     });
 
     const registrationButton = new Button({
       type: 'button',
       variant: 'secondary',
       text: 'Регистрация',
-      className: 'component-button component-button--registration',
+      className: 'button--registration',
       id: 'registration-btn'
     });
 

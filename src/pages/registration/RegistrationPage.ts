@@ -7,6 +7,7 @@ import { router } from '../../main';
 import { Button } from '../../components/buttons/Button';
 import { Input } from '../../components/Input/Input';
 import { RegistrationForm } from '../../components/forms/RegistrationForm';
+import { Footer } from '../../components/footer/Footer';
 
 import templateSource from './registration.hbs';
 
@@ -86,16 +87,16 @@ export class RegistrationPage extends Block {
 
     const submitButton = new Button({
       type: 'submit',
-      variant: 'primary',
+      variant: 'secondary',
       text: 'Зарегистрироваться',
-      className: 'component-button component-button--primary'
+      className: 'button--registration'
     });
 
     const loginButton = new Button({
       type: 'button',
-      variant: 'secondary',
+      variant: 'primary',
       text: 'Авторизация',
-      className: 'component-button component-button--secondary',
+      className: 'button--authorization',
       id: 'login-btn'
     });
 
@@ -115,9 +116,12 @@ export class RegistrationPage extends Block {
       }
     });
 
+    const footer = new Footer();
+
     super('div', {
       children: {
-        form: form
+        form: form,
+        footer: footer
       },
       events: {
         click: (e: Event) => {
