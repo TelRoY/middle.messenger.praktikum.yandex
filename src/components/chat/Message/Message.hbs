@@ -1,10 +1,4 @@
 <div class="message message--{{type}}" data-message-id="{{id}}">
-  {{#if (eq type "theirs")}}
-    <div class="message__avatar">
-      <div class="message__avatar-placeholder">{{avatar}}</div>
-    </div>
-  {{/if}}
-
   <div class="message__content">
     {{#if (eq type "theirs")}}
       {{#if sender}}
