@@ -13,7 +13,7 @@ import { MessageInput } from '../../components/chat/MessageInput/MessageInput';
 import { Modal } from '../../components/modal/Modal';
 import { CreateChatForm } from '../../components/forms/CreateChatForm/CreateChatForm';
 import { UserManagementForm } from '../../components/forms/UserManagementForm/UserManagementForm';
-
+import { BASE_URL } from '../../utils/HTTPClient';
 import { WebSocketTransport } from '../../utils/WebSocket';
 import store, { StoreEvents } from '../../store/Store';
 import { ChatMessage } from '../../models/Chat';
@@ -44,6 +44,7 @@ export class MessengerPage extends Block {
   private currentUserId: number = 0;
   private currentUserInitials: string = '';
   private isLoadingChats: boolean = false;
+  private currentUserAvatar: string = '';
 
   constructor() {
     
@@ -142,6 +143,7 @@ export class MessengerPage extends Block {
     if (user && user.id) {
       this.currentUserId = user.id;
       this.currentUserInitials = (user.first_name?.[0] || 'И') + (user.second_name?.[0] || 'И');
+      this.currentUserAvatar = user.avatar;
     }
 
     const storedChats = store.getState().chats;
@@ -166,6 +168,13 @@ export class MessengerPage extends Block {
       nextChat: nextState.currentChat?.id,
       currentChatId: this.currentChatId
     });
+
+    if (nextState.user && (!prevState.user || nextState.user.avatar !== prevState.user.avatar)) {
+      this.currentUserId = nextState.user.id;
+      this.currentUserInitials = (nextState.user.first_name?.[0] || 'И') + (nextState.user.second_name?.[0] || 'И');
+      this.currentUserAvatar = nextState.user.avatar;
+      this.forceUpdate();
+    }
 
     if (nextState.user && !this.currentUserId) {
       this.currentUserId = nextState.user.id;
@@ -727,11 +736,29 @@ export class MessengerPage extends Block {
     }
   }
 
+  private forceUpdate(): void {
+    const content = this.getContent();
+    if (content) {
+      content.innerHTML = this.render();
+      this._replacePlaceholders();
+      this._addEvents();
+    }
+  }
+
   public override render(): string {
     const template = compile(templateSource);
     const children = this.getChildren();
+
+    let avatarUrl = '';
+    if (this.currentUserAvatar) {
+      avatarUrl = this.currentUserAvatar.startsWith('http') 
+        ? this.currentUserAvatar 
+        : `${BASE_URL}/resources${this.currentUserAvatar}`;
+    }
+
     const context: Record<string, string> = {
-      userInitials: this.currentUserInitials
+      userInitials: this.currentUserInitials,
+      userAvatar: avatarUrl
     };
     
     Object.keys(children).forEach(key => {

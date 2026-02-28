@@ -6,7 +6,11 @@
           <div class="left-column-main-header">
             <div class="left-header">
               <a href="/settings" class="profile-button">
-                {{userInitials}}
+                {{#if userAvatar}}
+                  <img src="{{userAvatar}}" alt="Аватар" class="profile-avatar">
+                {{else}}
+                  {{userInitials}}
+                {{/if}}
               </a>
 
               <div class="dropdown-menu">

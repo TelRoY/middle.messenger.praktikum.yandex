@@ -281,6 +281,14 @@
   font-weight: 600;
   text-decoration: none;
   transition: transform 0.2s ease;
+  overflow: hidden;
+}
+
+.profile-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .profile-button:hover {
