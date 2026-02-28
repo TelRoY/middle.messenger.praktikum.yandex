@@ -87,7 +87,6 @@ class Store extends EventBus {
     this.emit(StoreEvents.UPDATED, prevState, this.state);
   }
 
-  // Auth actions
   public async initAuth(): Promise<void> {
     this.setState({ isLoading: true, error: null });
     try {
@@ -171,7 +170,6 @@ class Store extends EventBus {
     }
   }
 
-  // Chats actions
   public async loadChats(): Promise<void> {
     this.setState({ isLoading: true, error: null });
     try {

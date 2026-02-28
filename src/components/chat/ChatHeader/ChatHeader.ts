@@ -20,15 +20,12 @@ export class ChatHeader extends Block {
     let avatar = this.props['avatar'] as string;
     let isImageAvatar = false;
 
-    console.log('🎨 ChatHeader rendering with avatar:', avatar);
-
     if (avatar && typeof avatar === 'string') {
       if (avatar.startsWith('/')) {
         avatar = `${BASE_URL}/resources${avatar}`
       }
 
       isImageAvatar = avatar.startsWith('https') || avatar.startsWith('data:image');
-      console.log('🖼️ isImageAvatar:', isImageAvatar, 'avatar:', avatar);
     }
 
     const context = {
@@ -37,8 +34,6 @@ export class ChatHeader extends Block {
       status: this.props['status'],
       isImageAvatar
     };
-
-    console.log('📦 ChatHeader context:', context);
     return template(context);
   }
 }

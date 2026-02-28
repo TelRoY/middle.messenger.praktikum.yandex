@@ -148,14 +148,11 @@ export class AuthAPI {
   }
 
   static async updateAvatar(avatar: File): Promise<ProfileResponse> {
-    console.log('🖼️ Updating avatar, file:', avatar.name, avatar.size);
 
     const formData = new FormData();
     formData.append('avatar', avatar);
     try {
       const response = await api.put<ProfileResponse>('/user/profile/avatar', formData);
-      console.log('✅ Avatar updated successfully, response:', response);
-      console.log('🖼️ Avatar URL from response:', response.avatar);
       return response;
     } catch (error) {
       console.error('❌ Failed to update avatar:', error);

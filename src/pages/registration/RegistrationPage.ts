@@ -217,7 +217,6 @@ export class RegistrationPage extends Block {
     const formGroup = content.querySelector(`[name="${fieldName}"]`)?.closest('.form-group');
     
     if (formGroup) {
-      // Удаляем предыдущую ошибку
       const oldError = formGroup.querySelector('.field-error');
       if (oldError) {
         oldError.remove();
@@ -254,13 +253,10 @@ export class RegistrationPage extends Block {
   }
 
    private showAllErrors(errors: Record<string, string>): void {
-    // Очищаем глобальные ошибки
     this.clearGlobalError();
     
-    // Очищаем все полевые ошибки
     Object.keys(errors).forEach(field => this.clearFieldError(field));
     
-    // Показываем новые ошибки
     Object.entries(errors).forEach(([field, message]) => {
       this.showFieldError(field, message);
     });

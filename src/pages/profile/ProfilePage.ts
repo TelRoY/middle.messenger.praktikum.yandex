@@ -164,7 +164,6 @@ export class ProfilePage extends Block {
 
     const isChangingPassword = data.oldPassword || data.newPassword;
 
-    // Валидация
     const errors = Validator.validateForm(data, 'profile');
     
     if (Object.keys(errors).length > 0) {
@@ -227,10 +226,8 @@ export class ProfilePage extends Block {
   }
 
   private async handleAvatarChange(file: File): Promise<void> {
-    console.log('📁 handleAvatarChange called with file:', file.name, file.type, file.size);
 
     if (!file.type.startsWith('image/')) {
-      console.log('❌ Not an image:', file.type);
       this.showMessage('Пожалуйста, выберите изображение', 'error');
       return;
     }
@@ -242,10 +239,8 @@ export class ProfilePage extends Block {
 
     try {
       this.setLoading(true);
-      console.log('🔄 Uploading avatar...');
 
       const updatedUser = await AuthAPI.updateAvatar(file);
-      console.log('✅ Avatar uploaded, response:', updatedUser);
 
       this.userData = updatedUser;
 
@@ -253,9 +248,7 @@ export class ProfilePage extends Block {
     
       const children = this.getChildren();
       const profileForm = children['profileForm'] as ProfileForm;
-      if (profileForm) {
-        console.log('🔄 Updating avatar in form with URL:', updatedUser.avatar);
-        
+      if (profileForm) {        
         profileForm.updateAvatar(avatarUrl);
       }
       this.showMessage('Аватар обновлен!', 'success');

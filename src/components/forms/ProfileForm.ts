@@ -23,8 +23,6 @@ export interface ProfileFormProps extends Props {
 
 export class ProfileForm extends Block {
   constructor(props: ProfileFormProps) {
-    console.log('🏗️ ProfileForm constructor called with props:', props);
-
     const events: Record<string, EventListener> = {
       submit: (e: Event) => {
         e.preventDefault();
@@ -47,26 +45,18 @@ export class ProfileForm extends Block {
             e.preventDefault();
             e.stopPropagation(); 
 
-            console.log('🖱️ Avatar upload button clicked');
-
             const content = this.getContent();
             const fileInput = content.querySelector('#avatar-input') as HTMLInputElement;
             if (fileInput) {
-              console.log('📁 Triggering file input click');
               fileInput.click();
-            } else {
-              console.log('File input not found');
             }
             return;
           }
         },
         change: (e: Event) => {
           const target = e.target as HTMLInputElement;
-          console.log('📁 Change event on input:', target.id, target.files?.length);
 
-          if (target.id === 'avatar-input' && target.files && target.files[0]) {
-            console.log('📁 File selected:', target.files[0].name, target.files[0].type, target.files[0].size);
-            
+          if (target.id === 'avatar-input' && target.files && target.files[0]) {            
             if (props.onAvatarChange) {
               props.onAvatarChange(target.files[0]);
             }
@@ -78,7 +68,6 @@ export class ProfileForm extends Block {
       ...props,
       events
     });
-    console.log('📋 ProfileForm events registered');
   }
 
   public updateData(data: Partial<ProfileFormProps>): void {
@@ -105,7 +94,6 @@ export class ProfileForm extends Block {
   }
 
   public override render(): string {
-
     const template = compile(templateSource);
     const context = {
       id: this.props['id'] as string || 'profile-form',
@@ -121,7 +109,6 @@ export class ProfileForm extends Block {
       avatarInitials: this.props['avatarInitials'] as string || 'ИИ',
       fullName: this.props['fullName'] as string || 'Иван Иванов'
     };
-    console.log('🎨 Rendering ProfileForm with avatar:', context.avatar);
     return template(context);
   }
 
@@ -157,9 +144,7 @@ export class ProfileForm extends Block {
     }
   }
 
-  public updateAvatar(avatarUrl: string): void {
-    console.log('🔄 ProfileForm.updateAvatar called with URL:', avatarUrl);
-    
+  public updateAvatar(avatarUrl: string): void {    
     this.setProps({ avatar: avatarUrl });
     
     const content = this.getContent();
@@ -170,9 +155,7 @@ export class ProfileForm extends Block {
       
       const img = content.querySelector('.avatar-img') as HTMLImageElement;
       if (img) {
-        img.onload = () => {
-          console.log('✅ Avatar image loaded successfully');
-        };
+        img.onload = () => {};
         img.onerror = (e) => {
           console.error('❌ Avatar image failed to load:', e);
           console.error('❌ Failed URL:', img.src);

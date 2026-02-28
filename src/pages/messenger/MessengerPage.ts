@@ -164,12 +164,6 @@ export class MessengerPage extends Block {
   }
 
   private handleStoreUpdate(prevState: any, nextState: any): void {
-    console.log('📦 Store updated:', {
-      prevChat: prevState.currentChat?.id,
-      nextChat: nextState.currentChat?.id,
-      currentChatId: this.currentChatId
-    });
-
     if (nextState.user && (!prevState.user || nextState.user.avatar !== prevState.user.avatar)) {
       this.currentUserId = nextState.user.id;
       this.currentUserInitials = (nextState.user.first_name?.[0] || 'И') + (nextState.user.second_name?.[0] || 'И');
@@ -184,12 +178,9 @@ export class MessengerPage extends Block {
     }
 
     if (nextState.currentChat.id !== prevState.currentChat.id) {
-      console.log('🔄 Chat changed to', nextState.currentChat.id);
-
       if (nextState.currentChat.id) {
         const currentChat = this.chats.find(c => c.id === nextState.currentChat.id);
         if (currentChat) {
-          console.log('📋 Updating chat header for:', currentChat.name);
           const newChatHeader = new ChatHeader({
             title: currentChat.name,
             avatar: currentChat.avatar,
@@ -210,8 +201,6 @@ export class MessengerPage extends Block {
             currentChat.avatar, 
             nextState.currentChat.messages?.length > 0 ? 'Online' : 'New chat'
           );
-
-          console.log('✅ ChatHeader updated from store');
         }
       }
       this.connectToChat(nextState.currentChat.id, nextState.currentChat.token);
@@ -322,7 +311,6 @@ export class MessengerPage extends Block {
   }
 
   private async switchChat(chatId: number): Promise<void> {
-    
     if (!chatId) {
       return;
     }
@@ -356,7 +344,6 @@ export class MessengerPage extends Block {
       return;
     }
 
-    console.log('✅ Selected chat:', selectedChat.name);
     this.currentChatId = chatId;
     
     const token = await ChatsAPI.getToken(chatId);
@@ -369,8 +356,6 @@ export class MessengerPage extends Block {
     }
 
     store.setCurrentChat(chatId, messages, token);
-
-    console.log('📋 Creating new ChatHeader with title:', selectedChat.name);
     
     const newChatHeader = new ChatHeader({
       title: selectedChat.name,
@@ -380,17 +365,12 @@ export class MessengerPage extends Block {
 
     this.chatHeader = newChatHeader;
 
-    console.log('👥 Children before update:', Object.keys(this.getChildren()));
-
     this.setProps({
       children: {
         ...this.getChildren(),
         chatHeader: this.chatHeader
       }
     });
-    console.log('👥 Children after update:', Object.keys(this.getChildren()));
-
-    console.log('✅ ChatHeader updated');
 
     this.forceUpdateChatHeader(selectedChat.name, selectedChat.avatar, messages.length > 0 ? 'Online' : 'New chat');
 
@@ -434,7 +414,6 @@ export class MessengerPage extends Block {
   }
 
   private async loadChats(): Promise<void> {
-    
     if (this.isLoadingChats) {
       return;
     }
@@ -603,7 +582,6 @@ export class MessengerPage extends Block {
         }
       }
       const result = await ChatsAPI.createChat({ title: chatTitle });
-      console.log('✅ Chat created:', result);
       if (userForChat) {
         await ChatsAPI.addUserToChat({
           users: [userForChat.id],
@@ -629,9 +607,7 @@ export class MessengerPage extends Block {
     const confirmDelete = confirm('Вы уверены, что хотите удалить этот чат? Это действие нельзя отменить.');
     if (!confirmDelete) return;
   
-    try {
-      console.log('🗑️ Deleting chat', this.currentChatId);
-      
+    try {      
       await ChatsAPI.deleteChat(this.currentChatId);
       
       this.chats = this.chats.filter(chat => chat.id !== this.currentChatId);
@@ -669,6 +645,7 @@ export class MessengerPage extends Block {
       alert('Ошибка при удалении чата');
     }
   }
+
   private async openUserManagementModal(): Promise<void> {
     if (!this.currentChatId) return;
   
@@ -751,7 +728,6 @@ export class MessengerPage extends Block {
   }
 
   private forceUpdateChatHeader(title: string, avatar: string, status: string): void {
-    console.log('🔄 Force updating chat header with title:', title);
     
     const content = this.getContent();
     const headerElement = content.querySelector('.chat-header');
