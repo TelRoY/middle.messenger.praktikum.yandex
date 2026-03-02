@@ -64,7 +64,8 @@
     "src/**/*.js",
     "src/**/*.d.ts",
     "env.d.ts",
-    "vite.config.ts"
+    "vite.config.ts",
+    "test/index.spec.ts"
   ],
   "exclude": [
     "node_modules",
