@@ -1,72 +1,119 @@
 import { Block } from '../../core/Block';
 import { Validator } from '../../utils/Validator';
-import { AuthAPI } from '../../api/AuthAPI';
+import { compile } from 'handlebars';
+import { router } from '../../main';
+import store from '../../store/Store';
+
+import { Button } from '../../components/buttons/Button';
+import { Input } from '../../components/Input/Input';
+import { Form } from '../../components/forms/Form';
+import { Footer } from '../../components/footer/Footer';
+
+import templateSource from './authorization.hbs';
 
 export class AuthorizationPage extends Block {
   private validationTimeout?: NodeJS.Timeout;
   private isLoading: boolean = false;
+  private loginInput: Input;
+  private passwordInput: Input;
+  private form: Form;
 
   constructor() {
+    const loginInput = new Input({
+      type: 'text',
+      name: 'login',
+      placeholder: 'Введите логин или email',
+      required: true,
+      autocomplete: 'username',
+      className: 'form-input',
+      id: 'login',
+      label: 'Логин'
+    });
+
+    const passwordInput = new Input({
+      type: 'password',
+      name: 'password',
+      placeholder: 'Введите пароль',
+      required: true,
+      minlength: 6,
+      autocomplete: 'current-password',
+      className: 'form-input',
+      id: 'password',
+      label: 'Пароль'
+    });
+
+    const submitButton = new Button({
+      type: 'submit',
+      variant: 'primary',
+      text: 'Авторизация',
+      className: 'button--authorization'
+    });
+
+    const registrationButton = new Button({
+      type: 'button',
+      variant: 'secondary',
+      text: 'Регистрация',
+      className: 'button--registration',
+      id: 'registration-btn'
+    });
+
+    const form = new Form({
+      id: 'login-form',
+      className: 'auth-form',
+      onSubmit: () => this.onSubmit(),
+      children: {
+        loginInput,
+        passwordInput,
+        submitButton,
+        registrationButton
+      }
+    });
+
+    const footer = new Footer();
+
     super('div', {
+      children: {
+        form: form,
+        footer: footer
+      },
       events: {
-        submit: (e: Event) => {
-          e.preventDefault();
-          this.onSubmit();
-        },
         click: (e: Event) => {
           const target = e.target as HTMLElement;
-          
-          // Кнопка "Регистрация"
-          if (target.id === 'registration-btn' || target.closest('#registration-btn')) {
-            window.history.pushState({}, '', '/registration');
-            window.dispatchEvent(new PopStateEvent('popstate'));
-          }
-        },
-        blur: (e: Event) => {
-          const target = e.target as HTMLInputElement;
-          if (target.classList.contains('form-input')) {
-            this.validateOnBlur(target.name, target.value);
-          }
-        },
-        focus: (e: Event) => {
-          const target = e.target as HTMLInputElement;
-          if (target.classList.contains('form-input')) {
-            const formGroup = target.closest('.form-group');
-            const error = formGroup?.querySelector('.field-error');
-            if (error) {
-              error.remove();
-              target.classList.remove('has-error');
-            }
-            target.classList.remove('is-valid');
+          if (target.closest('#registration-btn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            router.go('/sign-up');
           }
         }
       }
     });
+
+    this.loginInput = loginInput;
+    this.passwordInput = passwordInput;
+    this.form = form;
+  }
+
+  private resetForm(): void {
+    if (this.form) {
+      this.form.reset();
+    }
   }
 
   private async onSubmit(): Promise<void> {
     if (this.isLoading) return;
-    const content = this.getContent();
-    const form = content.querySelector('#login-form') as HTMLFormElement;
-    if (form) {
-      const formData = new FormData(form);
-      const data = Object.fromEntries(formData);
-      
-      // ВАЛИДАЦИЯ НА SUBMIT
-      const errors = Validator.validateForm(data, 'authorization');
-      
-      if (Object.keys(errors).length === 0) {
-        await this.attemptLogin(data);
-      } else {
-        this.showAllErrors(errors);
-        
-        // Фокусируемся на первом поле с ошибкой
-        const firstErrorField = Object.keys(errors)[0];
-        const firstInput = content.querySelector(`[name="${firstErrorField}"]`) as HTMLInputElement;
-        if (firstInput) {
-          firstInput.focus();
-        }
-      }
+    
+    const data = {
+      login: this.loginInput.value.trim(),
+      password: this.passwordInput.value.trim()
+    };
+    
+    // ВАЛИДАЦИЯ НА SUBMIT
+    const errors = Validator.validateForm(data, 'authorization');
+    
+    if (Object.keys(errors).length === 0) {
+      await this.attemptLogin(data);
+    } else {
+      this.showAllErrors(errors);
     }
   }
 
@@ -79,57 +126,60 @@ export class AuthorizationPage extends Block {
     this.validationTimeout = setTimeout(() => {
       const error = Validator.validateField(fieldName, value, 'authorization');
       
-      const content = this.getContent();
-      const input = content.querySelector(`[name="${fieldName}"]`);
-      const formGroup = input?.closest('.form-group');
-      
-      if (formGroup) {
-        // Удаляем предыдущую ошибку
-        const oldError = formGroup.querySelector('.field-error');
-        if (oldError) {
-          oldError.remove();
-        }
-        
-        input?.classList.remove('has-error');
-        input?.classList.remove('is-valid');
-        
-        if (error) {
-          this.showFieldError(fieldName, error);
-        } else if (value.trim()) {
-          input?.classList.add('is-valid');
-        }
+      if (error) {
+        this.showFieldError(fieldName, error);
+      } else if (value.trim()) {
+        this.clearFieldError(fieldName);
       }
     }, 300);
   }
 
   private showFieldError(fieldName: string, message: string): void {
     const content = this.getContent();
-    const input = content.querySelector(`[name="${fieldName}"]`);
-    const formGroup = input?.closest('.form-group');
+    const formGroup = content.querySelector(`[name="${fieldName}"]`)?.closest('.form-group');
     
-    if (formGroup && input) {
-      const errorDiv = document.createElement('div');
-      errorDiv.className = 'field-error';
-      errorDiv.textContent = message;
+    if (formGroup) {
+      const oldError = formGroup.querySelector('.field-error');
+      if (oldError) {
+        oldError.remove();
+      }
       
-      formGroup.appendChild(errorDiv);
-      input.classList.add('has-error');
+      const input = formGroup.querySelector('input');
+      if (input) {
+        input.classList.add('has-error');
+        
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'field-error';
+        errorDiv.textContent = message;
+        formGroup.appendChild(errorDiv);
+      }
     }
   }
 
-  private showAllErrors(errors: Record<string, string>): void {
+  private clearFieldError(fieldName: string): void {
     const content = this.getContent();
+    const formGroup = content.querySelector(`[name="${fieldName}"]`)?.closest('.form-group');
     
-    // Очищаем глобальные ошибки
+    if (formGroup) {
+      const error = formGroup.querySelector('.field-error');
+      if (error) {
+        error.remove();
+      }
+      
+      const input = formGroup.querySelector('input');
+      if (input) {
+        input.classList.remove('has-error');
+        input.classList.remove('is-valid');
+      }
+    }
+  }
+
+
+   private showAllErrors(errors: Record<string, string>): void {
     this.clearGlobalError();
     
-    // Очищаем все полевые ошибки
-    content.querySelectorAll('.field-error').forEach(el => el.remove());
-    content.querySelectorAll('.has-error, .is-valid').forEach(el => {
-      el.classList.remove('has-error', 'is-valid');
-    });
+    Object.keys(errors).forEach(field => this.clearFieldError(field));
     
-    // Показываем новые ошибки
     Object.entries(errors).forEach(([field, message]) => {
       this.showFieldError(field, message);
     });
@@ -138,10 +188,9 @@ export class AuthorizationPage extends Block {
   private showGlobalError(message: string): void {
     const content = this.getContent();
     
-    // Сначала очищаем старую ошибку
     this.clearGlobalError();
     
-    if (!message) return; // Не показываем пустое сообщение
+    if (!message) return;
     
     const errorDiv = document.createElement('div');
     errorDiv.className = 'global-error';
@@ -171,7 +220,6 @@ export class AuthorizationPage extends Block {
   private showSuccessMessage(message: string): void {
     const content = this.getContent();
     
-    // Очищаем предыдущие сообщения
     this.clearGlobalError();
     content.querySelectorAll('.success-message').forEach(el => el.remove());
     
@@ -202,38 +250,31 @@ export class AuthorizationPage extends Block {
     try {
       this.setLoading(true);
       
-      // Очищаем все ошибки перед попыткой входа
       this.clearGlobalError();
       this.showAllErrors({});
       
-      const userData = await AuthAPI.login({
-        login: data['login'].toString().trim(),
-        password: data['password'].toString().trim()
-      });
+      await store.login(data['login'].toString().trim(), data['password'].toString().trim());
+      const user = store.getState().user;
+
+      if (user) {
+        localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('isAuthenticated', 'true');
+        this.showSuccessMessage('Вход выполнен успешно!');
+        this.resetForm(); 
       
-      localStorage.setItem('user', JSON.stringify(userData));
-      localStorage.setItem('isAuthenticated', 'true');
-      
-      this.showSuccessMessage('Вход выполнен успешно!');
-      
-      setTimeout(() => {
-        window.history.pushState({}, '', '/');
-        window.dispatchEvent(new PopStateEvent('popstate'));
-      }, 2000);
-      
+        setTimeout(() => {
+          router.go('/messenger');
+        }, 2000);
+      } else {
+        throw new Error('Не удалось получить данные пользователя');
+      }
     } catch (error: unknown) {
-      console.error('Login error:', error);
       
       let errorMessage = 'Ошибка при входе. Проверьте данные и попробуйте снова.';
       
       if (error instanceof Error) {
         errorMessage = error.message || errorMessage;
-      } else if (typeof error === 'string') {
-        errorMessage = error;
-      } else if (error && typeof error === 'object' && 'message' in error) {
-        errorMessage = String((error as any).message);
-      }
-      
+      }      
       this.showGlobalError(errorMessage);
     } finally {
       this.setLoading(false);
@@ -258,63 +299,47 @@ export class AuthorizationPage extends Block {
     }
   }
 
-  protected override render(): string {
-    return `
-      <main class="container">
-        <div class="header">
-          <h1>MyMate</h1>
-          <p>Войдите в свой аккаунт, чтобы продолжить</p>
-        </div>
-
-        <div class="main">
-          <form id="login-form" class="auth-form">
-            <div class="form-group">
-              <label for="login" class="form-label">Логин</label>
-              <input
-                type="text"
-                id="login"
-                name="login"
-                class="form-input"
-                placeholder="Введите логин или email"
-                required
-                autocomplete="username"
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="password" class="form-label">Пароль</label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                class="form-input"
-                placeholder="Введите пароль"
-                required
-                minlength="6"
-                autocomplete="current-password"
-              />
-            </div>
-
-            <div class="form-buttons login-buttons">
-              <button type="submit" class="component-button component-button--primary component-button--authorization">
-                Авторизация
-              </button>
-              
-              <button type="button" id="registration-btn" class="component-button component-button--secondary component-button--registration">
-                Регистрация
-              </button>
-            </div>
-          </form>
-        </div>
-      </main>
-    `;
+  public override render(): string {
+    const template = compile(templateSource);
+    const children = this.getChildren();
+    const context: Record<string, string> = {};
+    Object.keys(children).forEach(key => {
+      context[key] = `<div data-id="${key}"></div>`;
+    });
+    return template(context);
   }
+
+  public override show(): void {
+    const content = this.getContent();
+    if (content) {
+      content.style.display = 'block';
+    }
+  }
+
+  public override hide(): void {
+    const content = this.getContent();
+    if (content) {
+      content.style.display = 'none';
+    }
+  }
+      
 
   protected override componentDidMount(): void {
     const content = this.getContent();
     const loginInput = content.querySelector('#login') as HTMLInputElement;
     if (loginInput) {
+      loginInput.addEventListener('blur', (e) => {
+        this.validateOnBlur('login', (e.target as HTMLInputElement).value);
+      });
+      loginInput.addEventListener('focus', () => this.clearFieldError('login'));
       setTimeout(() => loginInput.focus(), 100);
+    }
+    const passwordInput = content.querySelector('#password') as HTMLInputElement;
+    if (passwordInput) {
+      passwordInput.addEventListener('blur', (e) => {
+        this.validateOnBlur('password', (e.target as HTMLInputElement).value);
+      });
+      passwordInput.addEventListener('focus', () => this.clearFieldError('password'));
     }
   }
 }

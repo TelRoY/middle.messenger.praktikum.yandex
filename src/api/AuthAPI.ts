@@ -1,11 +1,14 @@
+import { api } from '../utils/apiRequest';
 import { apiClient } from '../utils/HTTPClient';
+import { checkResponse, ErrorResponse } from '../utils/checkResponse';
+import { User } from '../models/User';
 
 export interface LoginRequest {
   login: string;
   password: string;
 }
 
-export interface LoginResponse {
+export interface LoginResponse extends User {
   id: number;
   first_name: string;
   second_name: string;
@@ -38,7 +41,7 @@ export interface ProfileUpdateRequest {
   phone?: string | undefined;
 }
 
-export interface ProfileResponse {
+export interface ProfileResponse extends User {
   id: number;
   first_name: string;
   second_name: string;
@@ -49,12 +52,6 @@ export interface ProfileResponse {
   avatar: string;
 }
 
-export interface ErrorResponse {
-  reason: string;
-  errors?: Record<string, string> | undefined;
-}
-
-// Вспомогательные функции для безопасного преобразования
 function loginRequestToRecord(data: LoginRequest): Record<string, string> {
   return {
     login: data.login,
@@ -95,7 +92,8 @@ function profileUpdateRequestToRecord(data: ProfileUpdateRequest): Record<string
 
 export class AuthAPI {
   static async login(data: LoginRequest): Promise<LoginResponse> {
-    console.log('📝 Login form submitted with data:', data);
+    await this.logout();
+    
 
     const requestData = loginRequestToRecord(data);
     const response = await apiClient.post<LoginResponse | ErrorResponse>(
@@ -103,94 +101,66 @@ export class AuthAPI {
       requestData
     );
     
-    if (!response.ok) {
-      const error = response.data as ErrorResponse;
-      throw new Error(error.reason || 'Ошибка авторизации');
-    }
-    
-    return response.data as LoginResponse;
+    return checkResponse<LoginResponse>(response);
   }
 
   static async register(data: RegistrationRequest): Promise<RegistrationResponse> {
+    
     const requestData = registrationRequestToRecord(data);
-    const response = await apiClient.post<RegistrationResponse | ErrorResponse>(
-      '/auth/signup',
-      requestData
-    );
-    
-    if (!response.ok) {
-      const error = response.data as ErrorResponse;
-      throw new Error(error.reason || 'Ошибка регистрации');
-    }
-    
-    return response.data as RegistrationResponse;
+    return api.post<RegistrationResponse>('/auth/signup', requestData);
   }
 
   static async logout(): Promise<void> {
-    const response = await apiClient.post('/auth/logout');
+    try {
+      const response = await apiClient.post<ErrorResponse>('/auth/logout', {});
     
-    if (!response.ok) {
-      throw new Error('Ошибка при выходе');
+      if (!response.ok && response.status !== 401) {
+        const error = response.data as ErrorResponse;
+        throw new Error(error.reason || 'Ошибка при выходе');
+      }
+    } finally {
+      localStorage.removeItem('user');
+      localStorage.removeItem('isAuthenticated');
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c
+        .replace(/^ +/, "")
+        .replace(/=.*/, "=; expires=" + new Date().toUTCString() + "; path=/");
+      });
     }
   }
 
-  static async getCurrentUser(): Promise<ProfileResponse> {
-    const response = await apiClient.get<ProfileResponse | ErrorResponse>(
-      '/auth/user'
-    );
-    
-    if (!response.ok) {
-      const error = response.data as ErrorResponse;
-      throw new Error(error.reason || 'Ошибка получения данных пользователя');
+  static async getCurrentUser(): Promise<ProfileResponse | null> {
+    try {
+      return await api.get<ProfileResponse>('/auth/user');
+    } catch {
+      return null;
     }
-    
-    return response.data as ProfileResponse;
   }
 
   static async updateProfile(data: ProfileUpdateRequest): Promise<ProfileResponse> {
     const requestData = profileUpdateRequestToRecord(data);
-    
-    const response = await apiClient.put<ProfileResponse | ErrorResponse>(
-      '/user/profile',
-      requestData
-    );
-    
-    if (!response.ok) {
-      const error = response.data as ErrorResponse;
-      throw new Error(error.reason || 'Ошибка обновления профиля');
-    }
-    
-    return response.data as ProfileResponse;
+    return api.put<ProfileResponse>('/user/profile', requestData);
   }
 
   static async changePassword(oldPassword: string, newPassword: string): Promise<void> {
     const requestData = changePasswordToRecord(oldPassword, newPassword);
-    
-    const response = await apiClient.put<ErrorResponse>(
-      '/user/password',
-      requestData
-    );
-    
-    if (!response.ok) {
-      const error = response.data as ErrorResponse;
-      throw new Error(error.reason || 'Ошибка смены пароля');
-    }
+    await api.put<void>('/user/password', requestData);
   }
 
   static async updateAvatar(avatar: File): Promise<ProfileResponse> {
+
     const formData = new FormData();
     formData.append('avatar', avatar);
-
-    const response = await apiClient.put<ProfileResponse | ErrorResponse>(
-      '/user/profile/avatar',
-      formData,
-    );
-    
-    if (!response.ok) {
-      const error = response.data as ErrorResponse;
-      throw new Error(error.reason || 'Ошибка обновления аватара');
+    try {
+      const response = await api.put<ProfileResponse>('/user/profile/avatar', formData);
+      return response;
+    } catch (error) {
+      console.error('❌ Failed to update avatar:', error);
+      throw error;
     }
-    
-    return response.data as ProfileResponse;
+  }
+
+  static async searchUsers(login: string): Promise<User[]> {
+    return api.post<User[]>('/user/search', { login });
   }
 }

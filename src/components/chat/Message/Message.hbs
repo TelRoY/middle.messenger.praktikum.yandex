@@ -1,0 +1,23 @@
+<div class="message message--{{type}}" data-message-id="{{id}}">
+  <div class="message__content">
+    {{#if (eq type "theirs")}}
+      {{#if sender}}
+        <div class="message__sender">{{sender}}</div>
+      {{/if}}
+    {{/if}}
+    
+    <div class="message__bubble">
+      <div class="message__text">{{text}}</div>
+      <div class="message__meta">
+        <span class="message__time">{{time}}</span>
+        {{#if (eq type "mine")}}
+          <span class="message__status message__status--{{status}}">
+            {{#if (eq status "read")}}✓✓{{/if}}
+            {{#if (eq status "delivered")}}✓✓{{/if}}
+            {{#if (eq status "sent")}}✓{{/if}}
+          </span>
+        {{/if}}
+      </div>
+    </div>
+  </div>
+</div>

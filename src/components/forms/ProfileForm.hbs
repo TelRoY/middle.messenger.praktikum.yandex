@@ -1,0 +1,153 @@
+<form id="{{id}}" class="{{className}}">
+  <div class="avatar-section">
+    <div class="avatar-container">
+      {{#if avatar}}
+        <img src="{{avatar}}" alt="Аватар" class="avatar-img">
+      {{else}}
+        <div class="avatar-placeholder">{{avatarInitials}}</div>
+      {{/if}}
+      {{#if isEditMode}}
+        <div class="avatar-upload-btn">
+          <span>Изменить фото</span>
+        </div>
+        <input 
+          type="file" 
+          id="avatar-input" 
+          name="avatar" 
+          accept="image/*" 
+          style="display: none;"
+        >
+      {{/if}}
+    </div>
+  </div>
+  
+  <div class="profile-info">
+    <h1 class="profile-name">{{fullName}}</h1>
+    <p class="profile-display-name">@{{displayName}}</p>
+  </div>
+
+  <div class="form-grid">
+    <div class="form-group">
+      <label for="first_name" class="form-label">Имя</label>
+      <input
+        type="text"
+        id="first_name"
+        name="first_name"
+        class="form-input {{#unless isEditMode}}form-input--readonly{{/unless}}"
+        value="{{firstName}}"
+        placeholder="Иван"
+        {{#unless isEditMode}}readonly{{/unless}}
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="second_name" class="form-label">Фамилия</label>
+      <input
+        type="text"
+        id="second_name"
+        name="second_name"
+        class="form-input {{#unless isEditMode}}form-input--readonly{{/unless}}"
+        value="{{secondName}}"
+        placeholder="Иванов"
+        {{#unless isEditMode}}readonly{{/unless}}
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="display_name" class="form-label">Никнэйм</label>
+      <input
+        type="text"
+        id="display_name"
+        name="display_name"
+        class="form-input {{#unless isEditMode}}form-input--readonly{{/unless}}"
+        value="{{displayName}}"
+        placeholder="ivan95"
+        {{#unless isEditMode}}readonly{{/unless}}
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="login" class="form-label">Логин</label>
+      <input
+        type="text"
+        id="login"
+        name="login"
+        class="form-input {{#unless isEditMode}}form-input--readonly{{/unless}}"
+        value="{{login}}"
+        placeholder="ivanivanov"
+        {{#unless isEditMode}}readonly{{/unless}}
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="email" class="form-label">Электронная почта</label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        class="form-input {{#unless isEditMode}}form-input--readonly{{/unless}}"
+        value="{{email}}"
+        placeholder="ivanivanov@yandex.ru"
+        {{#unless isEditMode}}readonly{{/unless}}
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="phone" class="form-label">Телефон</label>
+      <input
+        type="tel"
+        id="phone"
+        name="phone"
+        class="form-input {{#unless isEditMode}}form-input--readonly{{/unless}}"
+        value="{{phone}}"
+        placeholder="+7 (800) 555-35-35"
+        {{#unless isEditMode}}readonly{{/unless}}
+      />
+    </div>
+
+    {{#if isEditMode}}
+      <div class="form-group password-section">
+        <h3 class="section-title">Смена пароля</h3>
+        
+        <div class="form-group">
+          <label for="oldPassword" class="form-label">Старый пароль</label>
+          <input
+            type="password"
+            id="oldPassword"
+            name="oldPassword"
+            class="form-input"
+            placeholder="Введите старый пароль"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="newPassword" class="form-label">Новый пароль</label>
+          <input
+            type="password"
+            id="newPassword"
+            name="newPassword"
+            class="form-input"
+            placeholder="Введите новый пароль"
+            minlength="6"
+          />
+        </div>
+      </div>
+    {{/if}}
+  </div>
+
+  <div class="profile-actions">
+    <button type="submit" class="button {{#if isEditMode}}button--primary{{else}}button--secondary{{/if}}">
+      {{#if isEditMode}}Сохранить изменения{{else}}Редактировать профиль{{/if}}
+    </button>
+    
+    {{#if isEditMode}}
+      <button type="button" id="cancel-edit" class="button button--secondary">
+        Отмена
+      </button>
+    {{/if}}
+    
+    <button type="button" id="back-home" class="button button--home">
+      На главную
+    </button>
+  </div>
+</form>

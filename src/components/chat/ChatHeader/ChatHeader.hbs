@@ -1,0 +1,34 @@
+<div class="chat-header">
+  <div class="chat-info">
+    <div class="chat-avatar">
+      {{#if isImageAvatar}}
+        <img src="{{avatar}}" alt="{{title}}" class="chat-avatar-img">
+      {{else}}
+        <div class="chat-avatar-placeholder">{{avatar}}</div>
+      {{/if}}
+    </div>
+    <div>
+      <h2 class="chat-title">{{title}}</h2>
+      <div class="chat-online-status">{{status}}</div>
+    </div>
+  </div>
+
+  <div class="chat-actions">
+    <div class="dropdown-menu">
+      <button class="dropdown-menu__button" type="button">⋯</button>
+
+      <div class="dropdown-menu__list">
+        <button class="dropdown-menu__item" type="button" data-action="manage-user">
+          👥 Управление участниками
+        </button>
+        <div class="dropdown-menu__divider"></div>
+        <button class="dropdown-menu__item" type="button" data-action="clear">
+          🗑️ Очистить историю
+        </button>
+        <button class="dropdown-menu__item" type="button" data-action="delete-chat">
+          ❌ Удалить чат
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -25,114 +25,89 @@ export interface HTTPResponse<T = unknown> {
   headers: Record<string, string>;
 }
 
+function queryStringify(data: Record<string, string | number | boolean>): string {
+  if (!data) return '';
+  
+  return Object.entries(data)
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+    .join('&');
+}
+
+export const BASE_URL = 'https://ya-praktikum.tech/api/v2';
+
 export class HTTPClient {
-  constructor(baseURL: string = '') {
-    console.log('🚀 HTTPClient created with baseURL:', baseURL);
+  private baseURL: string;
+
+  constructor(baseURL: string = BASE_URL) {
+    this.baseURL = baseURL;
   }
 
   async request<T = unknown>(
     url: string,
     options: HTTPRequestOptions = {}
   ): Promise<HTTPResponse<T>> {
-    console.log('📨 HTTP Request:', {
-      method: options.method || 'GET',
-      url: url,
-      data: options.data,
-      headers: options.headers
-    });
-    
-    // Имитация задержки сети
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // Генерируем моковые данные в зависимости от URL
-    const mockData = this.generateMockData(url, options.data);
-    
-    const response: HTTPResponse<T> = {
-      ok: true,
-      status: 200,
-      statusText: 'OK',
-      data: mockData as T,
-      headers: { 'content-type': 'application/json' }
-    };
-    
-    console.log('✅ HTTP Response:', response);
-    return response;
-  }
-
-  private generateMockData(url: string, data?: HTTPRequestData): unknown {
-    console.log(`🔧 Generating mock data for: ${url}`);
-    
-    switch (url) {
-      case '/auth/signin':
-        console.log('🔐 Login attempt with data:', data);
-        const loginData = data as Record<string, string>;
-        return {
-          id: 1,
-          first_name: 'Иван',
-          second_name: 'Иванов',
-          display_name: 'ivan95',
-          login: loginData?.["login"] || 'testuser',
-          email: 'test@example.com',
-          phone: '+7 (800) 555-35-35',
-          avatar: ''
-        };
-
-      case '/auth/signup':
-        console.log('📝 Registration attempt with data:', data);
-        return { id: 1 };
-
-      case '/auth/user':
-        console.log('👤 Getting current user data');
-        return {
-          id: 1,
-          first_name: 'Иван',
-          second_name: 'Иванов',
-          display_name: 'ivan95',
-          login: 'ivanivanov',
-          email: 'ivanivanov@yandex.ru',
-          phone: '+7 (800) 555-35-35',
-          avatar: ''
-        };
-
-      case '/user/profile':
-        console.log('🔄 Updating profile with data:', data);
-        const profileData = data as Record<string, string>;
-        return {
-          id: 1,
-          first_name: profileData?.["first_name"] || 'Иван',
-          second_name: profileData?.["second_name"] || 'Иванов',
-          display_name: profileData?.["display_name"] || 'ivan95',
-          login: profileData?.["login"] || 'ivanivanov',
-          email: profileData?.["email"] || 'ivanivanov@yandex.ru',
-          phone: profileData?.["phone"] || '+7 (800) 555-35-35',
-          avatar: ''
-        };
-
-      case '/user/password':
-        console.log('🔒 Changing password:', data);
-        return {};
-
-      case '/user/profile/avatar':
-        console.log('🖼️ Updating avatar:', data instanceof FormData ? 'FormData received' : data);
-        return {
-          id: 1,
-          first_name: 'Иван',
-          second_name: 'Иванов',
-          display_name: 'ivan95',
-          login: 'ivanivanov',
-          email: 'ivanivanov@yandex.ru',
-          phone: '+7 (800) 555-35-35',
-          avatar: 'https://example.com/avatar.jpg'
-        };
-
-      case '/auth/logout':
-        console.log('👋 Logout');
-        return {};
-
-      default:
-        console.log(`❓ Unknown endpoint: ${url}`, data);
-        return {};
+    const { method = HTTPMethod.GET, data, headers = {}, timeout = 5000, params } = options;
+    let fullUrl = `${this.baseURL}${url}`;
+    if (params) {
+      fullUrl += `?${queryStringify(params)}`;
     }
+    
+    const requestHeaders: Record<string, string> = {
+      ...headers
+    };
+
+    if (!(data instanceof FormData)) {
+      requestHeaders['Content-Type'] = 'application/json';
+    }
+
+    const fetchOptions: RequestInit = {
+      method,
+      headers: requestHeaders,
+      credentials: 'include',
+      mode: 'cors'
+    };
+
+    if (data) {
+      fetchOptions.body = data instanceof FormData ? data : JSON.stringify(data);
+    }
+
+    return new Promise((resolve, reject) => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+      fetch(fullUrl, { ...fetchOptions, signal: controller.signal })
+        .then(async (response) => {
+          clearTimeout(timeoutId);
+          
+          let responseData;
+          const contentType = response.headers.get('Content-Type');
+          
+          if (contentType?.includes('application/json')) {
+            responseData = await response.json();
+          } else {
+            responseData = await response.text();
+          }
+
+          const result: HTTPResponse<T> = {
+            ok: response.ok,
+            status: response.status,
+            statusText: response.statusText,
+            data: responseData,
+            headers: Object.fromEntries(response.headers.entries())
+          };
+
+          resolve(result);
+        })
+        .catch((error) => {
+          clearTimeout(timeoutId);
+          
+          if (error.name === 'AbortError') {
+            reject(new Error(`Request timeout after ${timeout}ms`));
+          } else {
+            reject(error);
+          }
+        });
+    });
   }
 
   get<T = unknown>(
@@ -173,11 +148,13 @@ export class HTTPClient {
 
   delete<T = unknown>(
     url: string,
-    options?: Omit<HTTPRequestOptions, 'method' | 'data'>
+    options?: { data?: HTTPRequestData } & Omit<HTTPRequestOptions, 'method' | 'data'>
   ): Promise<HTTPResponse<T>> {
+    const { data, ...rest } = options || {};
     return this.request<T>(url, {
-      ...options,
-      method: HTTPMethod.DELETE
+      ...rest,
+      method: HTTPMethod.DELETE,
+      ...(data && { data })
     });
   }
 
@@ -194,4 +171,4 @@ export class HTTPClient {
   }
 }
 
-export const apiClient = new HTTPClient('https://localhost:3000');
+export const apiClient = new HTTPClient();

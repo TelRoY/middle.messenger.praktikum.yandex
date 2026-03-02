@@ -1,0 +1,144 @@
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+}
+  
+.modal--open {
+  display: block !important;
+}
+  
+.modal__overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6); 
+  backdrop-filter: blur(2px);
+}
+  
+.modal__content {
+  position: relative;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 450px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: modalFadeIn 0.3s ease;
+}
+  
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+  
+.modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--color-border-light);
+  background: white;
+  border-radius: 16px 16px 0 0;
+}
+
+.modal__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+  
+.modal__close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: var(--color-text-light);
+  padding: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+  
+.modal__close:hover {
+  background-color: var(--color-hover);
+  color: var(--color-text);
+  transform: scale(1.1);
+}
+  
+.modal__body {
+  padding: 24px;
+  background: white;
+  border-radius: 0 0 16px 16px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+  
+.create-chat-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+  
+.create-chat-form .form-group {
+  margin-bottom: 0;
+}
+  
+.create-chat-form .form-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--color-text-light);
+}
+  
+.create-chat-form .form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+  
+.create-chat-form .form-actions button {
+  flex: 1;
+}
+  
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+  
+.form-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+  
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--color-text);
+}

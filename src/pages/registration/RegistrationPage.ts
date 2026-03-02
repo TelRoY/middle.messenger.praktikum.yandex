@@ -1,75 +1,197 @@
 import { Block } from '../../core/Block';
 import { Validator } from '../../utils/Validator';
 import { AuthAPI } from '../../api/AuthAPI';
+import { compile } from 'handlebars';
+import { router } from '../../main';
+
+import { Button } from '../../components/buttons/Button';
+import { Input } from '../../components/Input/Input';
+import { RegistrationForm } from '../../components/forms/RegistrationForm';
+import { Footer } from '../../components/footer/Footer';
+
+import templateSource from './registration.hbs';
 
 export class RegistrationPage extends Block {
   private validationTimeout?: NodeJS.Timeout;
   private isLoading: boolean = false;
+  private firstNameInput: Input;
+  private secondNameInput: Input;
+  private loginInput: Input;
+  private emailInput: Input;
+  private passwordInput: Input;
+  private phoneInput: Input;
+  private form: RegistrationForm;
 
   constructor() {
-    super('div', {
-      events: {
-        submit: (e: Event) => {
-          e.preventDefault();
-          this.onSubmit();
-        },
-        click: (e: Event) => {
-          const target = e.target as HTMLElement;
-          if (target.id === 'homeBtn' || target.closest('#homeBtn')) {
-            window.history.pushState({}, '', '/');
-            window.dispatchEvent(new PopStateEvent('popstate'));
-          }
-        },
-        blur: (e: Event) => {
-          const target = e.target as HTMLInputElement;
-          if (target.classList.contains('form-input')) {
-            this.validateOnBlur(target.name, target.value);
-          }
-        },
-        focus: (e: Event) => {
-          const target = e.target as HTMLInputElement;
-          if (target.classList.contains('form-input')) {
-            const formGroup = target.closest('.form-group');
-            const error = formGroup?.querySelector('.field-error');
-            if (error) {
-              error.remove();
-              target.classList.remove('has-error');
-            }
-            target.classList.remove('is-valid');
-          }
-        }
+     const firstNameInput = new Input({
+      type: 'text',
+      name: 'first_name',
+      placeholder: 'Иван',
+      required: true,
+      className: 'form-input',
+      id: 'first_name',
+      label: 'Имя'
+    });
+
+    const secondNameInput = new Input({
+      type: 'text',
+      name: 'second_name',
+      placeholder: 'Иванов',
+      required: true,
+      className: 'form-input',
+      id: 'second_name',
+      label: 'Фамилия'
+    });
+
+    const loginInput = new Input({
+      type: 'text',
+      name: 'login',
+      placeholder: 'ivanivanov',
+      required: true,
+      minlength: 3,
+      className: 'form-input',
+      id: 'login',
+      label: 'Логин'
+    });
+
+    const emailInput = new Input({
+      type: 'email',
+      name: 'email',
+      placeholder: 'ivanivanov@yandex.ru',
+      required: true,
+      className: 'form-input',
+      id: 'email',
+      label: 'Электронная почта'
+    });
+
+    const passwordInput = new Input({
+      type: 'password',
+      name: 'password',
+      placeholder: 'Минимум 6 символов',
+      required: true,
+      minlength: 6,
+      className: 'form-input',
+      id: 'password',
+      label: 'Пароль'
+    });
+
+    const phoneInput = new Input({
+      type: 'tel',
+      name: 'phone',
+      placeholder: '+7 (800) 555-35-35',
+      required: true,
+      className: 'form-input',
+      id: 'phone',
+      label: 'Телефон'
+    });
+
+    const submitButton = new Button({
+      type: 'submit',
+      variant: 'secondary',
+      text: 'Зарегистрироваться',
+      className: 'button--registration'
+    });
+
+    const loginButton = new Button({
+      type: 'button',
+      variant: 'primary',
+      text: 'Авторизация',
+      className: 'button--authorization',
+      id: 'login-btn'
+    });
+
+    const form = new RegistrationForm({
+      id: 'registration-form',
+      className: 'registration-form',
+      onSubmit: () => this.onSubmit(),
+      children: {
+        firstNameInput,
+        secondNameInput,
+        loginInput,
+        emailInput,
+        passwordInput,
+        phoneInput,
+        submitButton,
+        loginButton
       }
     });
+
+    const footer = new Footer();
+
+    super('div', {
+      children: {
+        form: form,
+        footer: footer
+      },
+      events: {
+        click: (e: Event) => {
+          const target = e.target as HTMLElement;
+          if (target.closest('#login-btn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            setTimeout(() => {
+              router.go('/');
+            }, 50);
+            return;
+          }
+        
+          const link = target.closest('a');
+          if (link) {
+            e.preventDefault();
+            const href = link.getAttribute('href');
+            if (href) {
+              router.go(href);
+              return;
+            }
+          }
+        },
+      }
+    });
+    this.firstNameInput = firstNameInput;
+    this.secondNameInput = secondNameInput;
+    this.loginInput = loginInput;
+    this.emailInput = emailInput;
+    this.passwordInput = passwordInput;
+    this.phoneInput = phoneInput;
+    this.form = form;
   }
 
   private async onSubmit(): Promise<void> {
-    if (this.isLoading) return;
-    const content = this.getContent();
-    const form = content.querySelector('form') as HTMLFormElement;
-    if (form) {
-      const formData = new FormData(form);
-      const data: Record<string, string> = {};
-      formData.forEach((value, key) => {
-        data[key] = value.toString().trim();
-      });;
-      
-      // ВАЛИДАЦИЯ НА SUBMIT
-      const errors = Validator.validateForm(data, 'registration');
-      
-      if (Object.keys(errors).length === 0) {
-        await this.attemptRegistration(data);
-      } else {
-        this.showAllErrors(errors);
-        
-        // Фокусируемся на первом поле с ошибкой
-        const firstErrorField = Object.keys(errors)[0];
-        const firstInput = content.querySelector(`[name="${firstErrorField}"]`) as HTMLInputElement;
-        if (firstInput) {
-          firstInput.focus();
+  if (this.isLoading) return;
+
+  const data = {
+    first_name: this.firstNameInput.value.trim(),
+    second_name: this.secondNameInput.value.trim(),
+    login: this.loginInput.value.trim(),
+    email: this.emailInput.value.trim(),
+    password: this.passwordInput.value.trim(),
+    phone: this.phoneInput.value.trim()
+  }
+    
+  // ВАЛИДАЦИЯ НА SUBMIT
+  const errors = Validator.validateForm(data, 'registration');
+  const errorKeys = Object.keys(errors);
+    
+  if (errorKeys.length === 0) {
+    await this.attemptRegistration(data);
+  } else {
+    this.showAllErrors(errors);
+    
+    // Фокусируемся на первом поле с ошибкой
+    const firstErrorField = errorKeys[0];
+    if (firstErrorField) { // Проверяем, что поле существует
+      const input = this.getInputByName(firstErrorField);
+      if (input) {
+        input.value = '';
+        const content = this.getContent();
+        const domInput = content.querySelector(`[name="${firstErrorField}"]`) as HTMLInputElement;
+        if (domInput) {
+          domInput.focus();
         }
       }
     }
   }
+}
 
   // Валидация на blur
   private validateOnBlur(fieldName: string, value: string): void {
@@ -82,64 +204,59 @@ export class RegistrationPage extends Block {
     this.validationTimeout = setTimeout(() => {
       const error = Validator.validateField(fieldName, value, 'registration');
       
-      const content = this.getContent();
-      const input = content.querySelector(`[name="${fieldName}"]`);
-      const formGroup = input?.closest('.form-group');
-      
-      if (formGroup) {
-        // Удаляем предыдущую ошибку
-        const oldError = formGroup.querySelector('.field-error');
-        if (oldError) {
-          oldError.remove();
-        }
-        
-        // Убираем класс ошибки
-        input?.classList.remove('has-error');
-        input?.classList.remove('is-valid');
-        
-        if (error) {
-          // Показываем ошибку
-          this.showFieldError(fieldName, error);
-        } else if (value.trim()) {
-          // Показываем успех если поле заполнено
-          input?.classList.add('is-valid');
-        }
+      if (error) {
+        this.showFieldError(fieldName, error);
+      } else if (value.trim()) {
+        this.clearFieldError(fieldName);
       }
     }, 300);
   }
 
   private showFieldError(fieldName: string, message: string): void {
     const content = this.getContent();
-    const input = content.querySelector(`[name="${fieldName}"]`);
-    const formGroup = input?.closest('.form-group');
+    const formGroup = content.querySelector(`[name="${fieldName}"]`)?.closest('.form-group');
     
-    if (formGroup && input) {
-      // Создаем элемент ошибки
-      const errorDiv = document.createElement('div');
-      errorDiv.className = 'field-error';
-      errorDiv.textContent = message;
+    if (formGroup) {
+      const oldError = formGroup.querySelector('.field-error');
+      if (oldError) {
+        oldError.remove();
+      }
       
-      formGroup.appendChild(errorDiv);
-      
-      // Добавляем класс ошибки к инпуту
-      input.classList.add('has-error');
+      const input = formGroup.querySelector('input');
+      if (input) {
+        input.classList.add('has-error');
+        
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'field-error';
+        errorDiv.textContent = message;
+        formGroup.appendChild(errorDiv);
+      }
     }
   }
 
-  private showAllErrors(errors: Record<string, string>): void {
+  private clearFieldError(fieldName: string): void {
     const content = this.getContent();
+    const formGroup = content.querySelector(`[name="${fieldName}"]`)?.closest('.form-group');
+    
+    if (formGroup) {
+      const error = formGroup.querySelector('.field-error');
+      if (error) {
+        error.remove();
+      }
+      
+      const input = formGroup.querySelector('input');
+      if (input) {
+        input.classList.remove('has-error');
+        input.classList.remove('is-valid');
+      }
+    }
+  }
 
+   private showAllErrors(errors: Record<string, string>): void {
     this.clearGlobalError();
     
-    // Очищаем все старые ошибки
-    content.querySelectorAll('.field-error').forEach(el => el.remove());
+    Object.keys(errors).forEach(field => this.clearFieldError(field));
     
-    // Убираем все классы ошибок
-    content.querySelectorAll('.has-error, .is-valid').forEach(el => {
-      el.classList.remove('has-error', 'is-valid');
-    });
-    
-    // Показываем новые ошибки
     Object.entries(errors).forEach(([field, message]) => {
       this.showFieldError(field, message);
     });
@@ -150,6 +267,24 @@ export class RegistrationPage extends Block {
     const oldError = content.querySelector('.global-error');
     if (oldError) {
       oldError.remove();
+    }
+  }
+
+  private getInputByName(name: string): Input | undefined {
+    const inputs: Record<string, Input> = {
+      first_name: this.firstNameInput,
+      second_name: this.secondNameInput,
+      login: this.loginInput,
+      email: this.emailInput,
+      password: this.passwordInput,
+      phone: this.phoneInput
+    };
+    return inputs[name];
+  }
+
+  private resetForm(): void {
+    if (this.form) {
+      this.form.reset();
     }
   }
 
@@ -179,47 +314,22 @@ export class RegistrationPage extends Block {
       
       this.showSuccess('Регистрация успешно завершена!');
       
-      try {
-        const userData = await AuthAPI.login({
-          login: registrationData.login,
-          password: registrationData.password
-        });
-        
-        localStorage.setItem('user', JSON.stringify(userData));
-        localStorage.setItem('isAuthenticated', 'true');
-        
-        setTimeout(() => {
-          window.history.pushState({}, '', '/');
-          window.dispatchEvent(new PopStateEvent('popstate'));
-        }, 3000);
-        
-      } catch {
-        this.showSuccess('Регистрация успешна! Теперь войдите в систему.');
-        
-        setTimeout(() => {
-          window.history.pushState({}, '', '/authorization');
-          window.dispatchEvent(new PopStateEvent('popstate'));
-        }, 3000);
-      }
+      const userData = await AuthAPI.login({
+        login: registrationData.login,
+        password: registrationData.password
+      });
       
-      const form = this.getContent().querySelector('form') as HTMLFormElement;
-      if (form) {
-        form.reset();
-      }
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('isAuthenticated', 'true');
       
-    } catch (error) {
-      console.error('Registration error:', error);
+      setTimeout(() => {
+        router.go('/messenger');
+      }, 3000);
       
+      this.resetForm();
+      
+    } catch {
       let errorMessage = 'Ошибка регистрации';
-      if (error instanceof Error) {
-        if (error.message.includes('логин')) {
-          errorMessage = 'Этот логин уже занят';
-        } else if (error.message.includes('email')) {
-          errorMessage = 'Этот email уже используется';
-        } else if (error.message.includes('phone')) {
-          errorMessage = 'Этот телефон уже используется';
-        }
-      }
       this.showGlobalError(errorMessage);
       
     } finally {
@@ -272,13 +382,11 @@ export class RegistrationPage extends Block {
   private showSuccess(message: string): void {
     const content = this.getContent();
     
-    // Удаляем предыдущее сообщение
     const oldMessage = content.querySelector('.success-message');
     if (oldMessage) {
       oldMessage.remove();
     }
     
-    // Создаем сообщение об успехе
     const messageDiv = document.createElement('div');
     messageDiv.className = 'success-message';
     messageDiv.textContent = message;
@@ -292,13 +400,11 @@ export class RegistrationPage extends Block {
     messageElement.style.color = '#2ecc71';
     messageElement.style.border = '1px solid #2ecc71';
     
-    // Вставляем сообщение перед формой
     const form = content.querySelector('form');
     if (form) {
       form.parentNode?.insertBefore(messageDiv, form);
     }
     
-    // Автоматически скрываем через 5 секунд
     setTimeout(() => {
       if (messageDiv.parentNode) {
         messageDiv.remove();
@@ -306,108 +412,83 @@ export class RegistrationPage extends Block {
     }, 5000);
   }
 
-  protected override render(): string {
-    return `
-      <main class="container">
-        <div class="header">
-          <h1>Регистрация</h1>
-        </div>
+  public override render(): string {
+    const template = compile(templateSource);
+    const children = this.getChildren();
+    const context: Record<string, string> = {};
+    
+    Object.keys(children).forEach(key => {
+      context[key] = `<div data-id="${key}"></div>`;
+    });
 
-        <form class="registration-form">
-          <div class="form-group">
-            <label for="first_name">Имя</label>
-            <input
-              type="text"
-              id="first_name"
-              name="first_name"
-              class="form-input"
-              placeholder="Иван"
-              required
-            />
-          </div>
+    return template(context);
+  }
 
-          <div class="form-group">
-            <label for="second_name">Фамилия</label>
-            <input
-              type="text"
-              id="second_name"
-              name="second_name"
-              class="form-input"
-              placeholder="Иванов"
-              required
-            />
-          </div>
+  public override show(): void {
+    const content = this.getContent();
+    if (content) {
+      content.style.display = 'block';
+    }
+  }
 
-          <div class="form-group">
-            <label for="login">Логин</label>
-            <input
-              type="text"
-              id="login"
-              name="login"
-              class="form-input"
-              placeholder="ivanivanov"
-              required
-              minlength="3"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="email">Электронная почта</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              class="form-input"
-              placeholder="ivanivanov@yandex.ru"
-              required
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="password">Пароль</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              class="form-input"
-              placeholder="Минимум 6 символов"
-              required
-              minlength="6"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="phone">Телефон</label>
-            <input
-              type="tel"
-              id="phone"
-              name="phone"
-              class="form-input"
-              placeholder="+7 (800) 555-35-35"
-              required
-            />
-          </div>
-
-          <div class="form-buttons">
-            <button type="submit" class="component-button component-button--primary">
-              Зарегистрироваться
-            </button>
-            <button type="button" class="component-button component-button--secondary" id="homeBtn">
-              На главную
-            </button>
-          </div>
-        </form>
-      </main>
-    `;
+  public override hide(): void {
+    const content = this.getContent();
+    if (content) {
+      content.style.display = 'none';
+    }
   }
 
   protected override componentDidMount(): void {
     const content = this.getContent();
     
-    // Автофокус на первое поле
-    const firstInput = content.querySelector('input') as HTMLInputElement;
-    if (firstInput) {
-      setTimeout(() => firstInput.focus(), 100);
+    const firstNameInput = content.querySelector('#first_name') as HTMLInputElement;
+    if (firstNameInput) {
+      firstNameInput.addEventListener('blur', (e) => {
+        this.validateOnBlur('first_name', (e.target as HTMLInputElement).value);
+      });
+      firstNameInput.addEventListener('focus', () => this.clearFieldError('first_name'));
     }
+    
+    const secondNameInput = content.querySelector('#second_name') as HTMLInputElement;
+    if (secondNameInput) {
+      secondNameInput.addEventListener('blur', (e) => {
+        this.validateOnBlur('second_name', (e.target as HTMLInputElement).value);
+      });
+      secondNameInput.addEventListener('focus', () => this.clearFieldError('second_name'));
+    }
+    
+    const loginInput = content.querySelector('#login') as HTMLInputElement;
+    if (loginInput) {
+      loginInput.addEventListener('blur', (e) => {
+        this.validateOnBlur('login', (e.target as HTMLInputElement).value);
+      });
+      loginInput.addEventListener('focus', () => this.clearFieldError('login'));
+    }
+    
+    const emailInput = content.querySelector('#email') as HTMLInputElement;
+    if (emailInput) {
+      emailInput.addEventListener('blur', (e) => {
+        this.validateOnBlur('email', (e.target as HTMLInputElement).value);
+      });
+      emailInput.addEventListener('focus', () => this.clearFieldError('email'));
+    }
+    
+    const passwordInput = content.querySelector('#password') as HTMLInputElement;
+    if (passwordInput) {
+      passwordInput.addEventListener('blur', (e) => {
+        this.validateOnBlur('password', (e.target as HTMLInputElement).value);
+      });
+      passwordInput.addEventListener('focus', () => this.clearFieldError('password'));
+    }
+    
+    const phoneInput = content.querySelector('#phone') as HTMLInputElement;
+    if (phoneInput) {
+      phoneInput.addEventListener('blur', (e) => {
+        this.validateOnBlur('phone', (e.target as HTMLInputElement).value);
+      });
+      phoneInput.addEventListener('focus', () => this.clearFieldError('phone'));
+    }
+    
+    setTimeout(() => firstNameInput?.focus(), 100);
   }
 }

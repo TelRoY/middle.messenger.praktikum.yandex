@@ -10,14 +10,10 @@ const loadPartials = (partialsDir: string) => {
   const partials: Record<string, string> = {};
 
   const registerPartial = (name: string, content: string) => {
-    try {
-      // Проверяем синтаксис перед регистрацией
-      Handlebars.compile(content);
-      partials[name] = content;
-      Handlebars.registerPartial(name, content);
-    } catch (error) {
-      console.error(`✗ Ошибка в partial ${name}:`, (error as Error).message);
-    }
+    // Проверяем синтаксис перед регистрацией
+    Handlebars.compile(content);
+    partials[name] = content;
+    Handlebars.registerPartial(name, content);
   };
 
   const readPartialsRecursive = (dir: string, prefix = "") => {
@@ -39,6 +35,27 @@ const loadPartials = (partialsDir: string) => {
 
   readPartialsRecursive(partialsDir);
   return partials;
+};
+
+const handlebarsImportPlugin = {
+  name: "handlebars-import",
+  
+  transform(code: string, id: string) {
+    if (id.endsWith('.hbs')) {
+      // Преобразуем содержимое .hbs файла в строку
+      const content = fs.readFileSync(id, 'utf-8');
+      // Экранируем спецсимволы для JavaScript строки
+      const escapedContent = content
+        .replace(/\\/g, '\\\\')
+        .replace(/`/g, '\\`')
+        .replace(/\${/g, '\\${');
+      
+      return {
+        code: `export default \`${escapedContent}\`;`,
+        map: null
+      };
+    }
+  }
 };
 
 // Интерфейс для контекста Handlebars
@@ -72,6 +89,10 @@ function createHandlebarsPlugin(options: HandlebarsPluginOptions = {}) {
     return arg1 === arg2 ? options.fn(this) : options.inverse(this);
   });
 
+  Handlebars.registerHelper("eq", function (this: unknown, arg1: unknown, arg2: unknown, options: Handlebars.HelperOptions) {
+    return arg1 === arg2 ? options.fn(this) : options.inverse(this);
+  });
+
   return {
     name: "handlebars",
 
@@ -86,12 +107,12 @@ function createHandlebarsPlugin(options: HandlebarsPluginOptions = {}) {
             ...context,
             pageName: path.basename(filename, ".html"),
             menuItems: [
-              { title: "Авторизация", url: "/authorization" },
-              { title: "Регистрация", url: "/registration" },
-              { title: "Главная", url: "/home.html" },
-              { title: "Профиль", url: "/profile" },
-              { title: "404", url: "/404.html" },
-              { title: "500", url: "/500.html" },
+              { title: "Авторизация", url: "/" },
+              { title: "Регистрация", url: "/sign-up" },
+              { title: "Главная", url: "/messenger" },
+              { title: "Профиль", url: "/settings" },
+              { title: "404", url: "/404" },
+              { title: "500", url: "/500" },
             ],
           };
 
@@ -106,10 +127,10 @@ function createHandlebarsPlugin(options: HandlebarsPluginOptions = {}) {
         } catch (error) {
           console.error(error instanceof Error ? error.message : String(error));
           const safeHtml = html
-            .replace(/\{\{[\s\S]*?\}\}/g, "") // Удаляем все {{...}}
-            .replace(/\{\{#[\s\S]*?\}\}/g, "") // Удаляем все {{#...}}
-            .replace(/\{\{\/[\s\S]*?\}\}/g, "") // Удаляем все {{/...}}
-            .replace(/\{\{>[\s\S]*?\}\}/g, ""); // Удаляем все {{>...}}
+            .replace(/\{\{[\s\S]*?\}\}/g, "") 
+            .replace(/\{\{#[\s\S]*?\}\}/g, "") 
+            .replace(/\{\{\/[\s\S]*?\}\}/g, "") 
+            .replace(/\{\{>[\s\S]*?\}\}/g, "");
           return safeHtml;
         }
       },
@@ -127,9 +148,6 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, "index.html"),
-        home: resolve(__dirname, "src/pages/home/home.html"),
-        error404: resolve(__dirname, "src/pages/404/404.html"),
-        error500: resolve(__dirname, "src/pages/500/500.html"),
       },
     },
   },
@@ -150,6 +168,7 @@ export default defineConfig({
   },
 
   plugins: [
+    handlebarsImportPlugin,
     createHandlebarsPlugin({
       partialsDir: "src/components",
       context: {

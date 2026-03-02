@@ -12,27 +12,59 @@ export abstract class Block {
     FLOW_RENDER: 'flow:render'
   };
 
-  private _element: HTMLElement | null = null;
+  public _element: HTMLElement | null = null;
   private _meta: {
     tagName: string;
     props: Props;
   };
   protected props: Props;
   private eventBus: () => EventBus;
+  protected children: Record<string, Block> = {};
 
-  constructor(tagName: string = 'div', props: Props = {}) {
+  constructor(tagName: string = 'div', propsAndChildren: Props = {}) {
+    const { children, props } = this._extractChildren(propsAndChildren);
     const eventBus = new EventBus();
     
     this._meta = {
       tagName,
-      props
+      props: props || {}
     };
 
-    this.props = this._makePropsProxy(props);
+    this.props = this._makePropsProxy(props || {});
+    this.children = children || {};
     this.eventBus = () => eventBus;
 
     this._registerEvents(eventBus);
     eventBus.emit(Block.EVENTS.INIT);
+  }
+
+  private _extractChildren(propsAndChildren: Props): { children: Record<string, Block>, props: Props } {
+  const children: Record<string, Block> = {};
+  const props: Props = {};
+
+  if (propsAndChildren['children'] && typeof propsAndChildren['children'] === 'object') {
+    const childrenObj = propsAndChildren['children'] as Record<string, any>;
+    Object.entries(childrenObj).forEach(([key, value]) => {
+      if (value instanceof Block) {
+        children[key] = value;
+      }
+    });
+    delete propsAndChildren['children'];
+  }
+
+  Object.entries(propsAndChildren).forEach(([key, value]) => {
+    if (value instanceof Block) {
+      children[key] = value;
+    } else if (key !== 'children') { 
+      props[key] = value;
+    }
+  });
+
+  return { children, props };
+}
+
+  public getChildren(): Record<string, Block> {
+    return this.children;
   }
 
   private _registerEvents(eventBus: EventBus): void {
@@ -54,6 +86,9 @@ export abstract class Block {
 
   private _componentDidMount(): void {
     this.componentDidMount();
+    Object.values(this.children).forEach(child => {
+      child.dispatchComponentDidMount();
+    });
   }
 
   protected componentDidMount(): void {
@@ -93,8 +128,27 @@ export abstract class Block {
     if (this._element) {
       this._removeEvents();
       this._element.innerHTML = block;
+
+      this._replacePlaceholders();
+
       this._addEvents();
     }
+  }
+
+  public _replacePlaceholders(): void {
+    if (!this._element) {
+      return;
+    }
+    const element = this._element;
+    Object.entries(this.children).forEach(([key, child]) => {
+      const placeholder = element.querySelector(`[data-id="${key}"]`);
+      if (placeholder) {
+        placeholder.replaceWith(child.getContent());
+      } else {
+        const allPlaceholders = element.querySelectorAll('[data-id]');
+        Array.from(allPlaceholders).map(el => el.getAttribute('data-id'));
+      }
+    });
   }
   
   protected render(): string {
@@ -127,7 +181,6 @@ export abstract class Block {
   }
 
   private _createDocumentElement(tagName: string): HTMLElement {
-    // Можно сделать метод, который через фрагменты в цикле создаёт сразу несколько блоков
     return document.createElement(tagName);
   }
 
@@ -136,6 +189,9 @@ export abstract class Block {
     if (content) {
       content.style.display = 'block';
     }
+    Object.values(this.children).forEach(child => {
+      child.show();
+    });
   } 
 
   public hide(): void {
@@ -143,10 +199,13 @@ export abstract class Block {
     if (content) {
     content.style.display = 'none';
     }
+    Object.values(this.children).forEach(child => {
+      child.hide();
+    });
   }
 
-  private _addEvents() {
-    const {events = {} } = this.props;
+  public _addEvents() {
+    const { events = {} } = this.props;
     Object.keys(events).forEach(eventName => {
       if (events[eventName] !== undefined) {
         this.element?.addEventListener(eventName, events[eventName]);
@@ -155,7 +214,7 @@ export abstract class Block {
   }
 
 
-  private _removeEvents() {
+  public _removeEvents() {
     const { events = {} } = this.props;
     Object.keys(events).forEach(eventName => {
       if (events[eventName] !== undefined) {

@@ -1,0 +1,66 @@
+<div class="messenger-page">
+  <main class="main">
+    <div class="wrapper">
+      <div class="left-column">
+        <div class="left-column-main">
+          <div class="left-column-main-header">
+            <div class="left-header">
+              <a href="/settings" class="profile-button">
+                {{#if userAvatar}}
+                  <img src="{{userAvatar}}" alt="Аватар" class="profile-avatar">
+                {{else}}
+                  {{userInitials}}
+                {{/if}}
+              </a>
+
+              <div class="dropdown-menu">
+                <button class="dropdown-menu__button" type="button">
+                  ⋯
+                </button>
+
+                <div class="dropdown-menu__list">
+                  <button class="dropdown-menu__item" type="button" data-action="new-chat">
+                    Новый чат
+                  </button>
+                  <button class="dropdown-menu__item" type="button" data-action="settings">
+                    Настройки
+                  </button>
+                  <div class="dropdown-menu__divider"></div>
+                  <button class="dropdown-menu__item dropdown-menu__item--logout" type="button" data-action="logout">
+                    Выйти из аккаунта
+                  </button>
+                </div>
+              </div>
+
+              <div class="search-section">
+                <div class="search-input">
+                  <svg class="search-input__icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M19 19L13 13M15 8C15 11.866 11.866 15 8 15C4.13401 15 1 11.866 1 8C1 4.13401 4.13401 1 8 1C11.866 1 15 4.13401 15 8Z" 
+                          stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                  <input
+                    type="search"
+                    class="search-input__field"
+                    placeholder="Поиск чатов"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-list-wrapper">
+            {{{chatList}}}
+          </div>
+        </div>
+      </div>
+
+      <div class="right-column">
+        {{{chatHeader}}}
+        {{{messageList}}}
+        {{{messageInput}}}
+      </div>
+    </div>
+  </main>
+  {{{createChatModal}}}
+  {{{addUserModal}}}
+</div>
