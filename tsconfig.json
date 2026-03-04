@@ -36,7 +36,8 @@
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
     "types": [
-      "node"
+      "node",
+      "mocha"
     ],
     "baseUrl": ".",
     "paths": {
@@ -65,13 +66,11 @@
     "src/**/*.d.ts",
     "env.d.ts",
     "vite.config.ts",
-    "test/index.spec.ts"
+    "test/**/*"
   ],
   "exclude": [
     "node_modules",
     "dist",
     "vite.config.ts",
-    "**/*.test.ts",
-    "**/*.spec.ts"
   ]
 }

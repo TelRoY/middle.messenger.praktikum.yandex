@@ -1,8 +1,9 @@
+/// <reference types="mocha" />
 import { expect } from "chai";
-import { hello } from "../src/testexample";
+import { hello } from "../src/tests/index.js";
 
-describe("Typescript + Babel usage suite", () => {
+describe("Typescript", () => {
   it("should return string correctly", () => {
-    expect(hello("mocha"), "Hello mocha");
+    expect(hello("mocha")).to.equal("Hello mocha");
   });
 });
