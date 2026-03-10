@@ -68,7 +68,7 @@
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vite": "^6.2.6",
-    "vite-plugin-handlebars": "^2.0.0"
+    "vite-plugin-handlebars": "^1.5.0"
   },
   "dependencies": {
     "express": "^5.2.1",
