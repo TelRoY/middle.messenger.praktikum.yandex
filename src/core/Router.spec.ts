@@ -34,7 +34,6 @@ class MessengerPage extends MockPage {
 
 describe('Router', () => {
   let router: Router;
-  let _root: HTMLDivElement;
 
   beforeEach(() => {
     const dom = new JSDOM('<!DOCTYPE html><html><body><div id="app"></div></body></html>', {
