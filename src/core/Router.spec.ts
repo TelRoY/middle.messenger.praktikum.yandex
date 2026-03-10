@@ -32,12 +32,6 @@ class MessengerPage extends MockPage {
   }
 }
 
-class Error404Page extends MockPage {
-  constructor() {
-    super('404 Not Found');
-  }
-}
-
 describe('Router', () => {
   let router: Router;
   let root: HTMLDivElement;
@@ -48,9 +42,7 @@ describe('Router', () => {
     });
     global.window = dom.window as any;
     global.document = dom.window.document;
-    
-    root = document.querySelector('#app') as HTMLDivElement;
-    
+        
     router = new Router('#app');
   });
 

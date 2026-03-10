@@ -17,7 +17,7 @@ class TestButton extends Block {
     });
   }
 
-  protected render(): string {
+  protected override render(): string {
     return (this.props as any).text || '';
   }
 }

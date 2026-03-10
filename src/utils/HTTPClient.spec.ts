@@ -1,17 +1,18 @@
 /// <reference types="mocha" />
 import { expect } from 'chai';
-import { HTTPClient, HTTPMethod, BASE_URL } from './HTTPClient';
+import { HTTPClient, HTTPMethod } from './HTTPClient';
 
 describe('HTTPClient', () => {
   let client: HTTPClient;
+  let originalFetch: typeof global.fetch;
 
   beforeEach(() => {
     client = new HTTPClient();
-    global.fetch = global.fetch || (() => Promise.resolve(new Response()));
+    originalFetch = global.fetch;
   });
 
   afterEach(() => {
-    delete (global as any).fetch;
+    global.fetch = originalFetch;
   });
 
   describe('constructor', () => {
@@ -31,14 +32,14 @@ describe('HTTPClient', () => {
     it('should handle GET requests with params', async () => {
       let calledUrl = '';
       
-      // Мокаем fetch
-      global.fetch = (url: string) => {
-        calledUrl = url;
+      // Правильная типизация для fetch
+      global.fetch = ((input: RequestInfo | URL) => {
+        calledUrl = input.toString();
         return Promise.resolve(new Response(JSON.stringify({}), {
           status: 200,
           headers: { 'Content-Type': 'application/json' }
         }));
-      };
+      }) as typeof global.fetch;
 
       const client = new HTTPClient('https://api.com');
       await client.get('/users', { page: 1, limit: 10 });
@@ -52,13 +53,13 @@ describe('HTTPClient', () => {
     it('should make GET request', async () => {
       let calledMethod = '';
       
-      global.fetch = (url: string, options: any) => {
-        calledMethod = options.method;
+      global.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+        calledMethod = init?.method || 'GET';
         return Promise.resolve(new Response(JSON.stringify({}), {
           status: 200,
           headers: { 'Content-Type': 'application/json' }
         }));
-      };
+      }) as typeof global.fetch;
 
       await client.get('/users');
       expect(calledMethod).to.equal(HTTPMethod.GET);
@@ -67,13 +68,13 @@ describe('HTTPClient', () => {
     it('should make POST request', async () => {
       let calledMethod = '';
       
-      global.fetch = (url: string, options: any) => {
-        calledMethod = options.method;
+      global.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+        calledMethod = init?.method || 'GET';
         return Promise.resolve(new Response(JSON.stringify({}), {
           status: 200,
           headers: { 'Content-Type': 'application/json' }
         }));
-      };
+      }) as typeof global.fetch;
 
       await client.post('/users', { name: 'John' });
       expect(calledMethod).to.equal(HTTPMethod.POST);
@@ -82,13 +83,13 @@ describe('HTTPClient', () => {
     it('should make PUT request', async () => {
       let calledMethod = '';
       
-      global.fetch = (url: string, options: any) => {
-        calledMethod = options.method;
+      global.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+        calledMethod = init?.method || 'GET';
         return Promise.resolve(new Response(JSON.stringify({}), {
           status: 200,
           headers: { 'Content-Type': 'application/json' }
         }));
-      };
+      }) as typeof global.fetch;
 
       await client.put('/users/1', { name: 'John' });
       expect(calledMethod).to.equal(HTTPMethod.PUT);
@@ -97,13 +98,13 @@ describe('HTTPClient', () => {
     it('should make DELETE request', async () => {
       let calledMethod = '';
       
-      global.fetch = (url: string, options: any) => {
-        calledMethod = options.method;
+      global.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+        calledMethod = init?.method || 'GET';
         return Promise.resolve(new Response(JSON.stringify({}), {
           status: 200,
           headers: { 'Content-Type': 'application/json' }
         }));
-      };
+      }) as typeof global.fetch;
 
       await client.delete('/users/1');
       expect(calledMethod).to.equal(HTTPMethod.DELETE);
@@ -114,50 +115,52 @@ describe('HTTPClient', () => {
     it('should set Content-Type to application/json for JSON data', async () => {
       let contentType = '';
       
-      global.fetch = (url: string, options: any) => {
-        contentType = options.headers['Content-Type'];
+      global.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+        const headers = init?.headers as Record<string, string>;
+        contentType = headers?.['Content-Type'] || '';
         return Promise.resolve(new Response(JSON.stringify({}), {
           status: 200,
           headers: { 'Content-Type': 'application/json' }
         }));
-      };
+      }) as typeof global.fetch;
 
       await client.post('/users', { name: 'John' });
       expect(contentType).to.equal('application/json');
     });
 
     it('should not set Content-Type for FormData', async () => {
-      let contentType = '';
+      let contentType: string | undefined = '';
       const formData = new FormData();
       
-      global.fetch = (url: string, options: any) => {
-        contentType = options.headers['Content-Type'];
+      global.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+        const headers = init?.headers as Record<string, string>;
+        contentType = headers?.['Content-Type'];
         return Promise.resolve(new Response(JSON.stringify({}), {
           status: 200,
           headers: { 'Content-Type': 'application/json' }
         }));
-      };
+      }) as typeof global.fetch;
 
       await client.post('/users', formData);
       expect(contentType).to.be.undefined;
     });
 
     it('should include custom headers', async () => {
-      let headers = {};
+      let headers: Record<string, string> = {};
       
-      global.fetch = (url: string, options: any) => {
-        headers = options.headers;
+      global.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+        headers = (init?.headers as Record<string, string>) || {};
         return Promise.resolve(new Response(JSON.stringify({}), {
           status: 200,
           headers: { 'Content-Type': 'application/json' }
         }));
-      };
+      }) as typeof global.fetch;
 
       await client.get('/users', undefined, {
         headers: { 'X-Custom-Header': 'test' }
       });
 
-      expect((headers as any)['X-Custom-Header']).to.equal('test');
+      expect(headers['X-Custom-Header']).to.equal('test');
     });
   });
 
@@ -165,13 +168,13 @@ describe('HTTPClient', () => {
     it('should return successful response with data', async () => {
       const responseData = { id: 1, name: 'John' };
       
-      global.fetch = () => {
+      global.fetch = ((input: RequestInfo | URL) => {
         return Promise.resolve(new Response(JSON.stringify(responseData), {
           status: 200,
           statusText: 'OK',
           headers: { 'Content-Type': 'application/json' }
         }));
-      };
+      }) as typeof global.fetch;
 
       const response = await client.get('/users/1');
       
@@ -182,13 +185,13 @@ describe('HTTPClient', () => {
     });
 
     it('should return error response', async () => {
-      global.fetch = () => {
+      global.fetch = ((input: RequestInfo | URL) => {
         return Promise.resolve(new Response(JSON.stringify({ error: 'Not found' }), {
           status: 404,
           statusText: 'Not Found',
           headers: { 'Content-Type': 'application/json' }
         }));
-      };
+      }) as typeof global.fetch;
 
       const response = await client.get('/users/999');
       
@@ -200,12 +203,12 @@ describe('HTTPClient', () => {
     it('should handle text response', async () => {
       const textData = 'Plain text response';
       
-      global.fetch = () => {
+      global.fetch = ((input: RequestInfo | URL) => {
         return Promise.resolve(new Response(textData, {
           status: 200,
           headers: { 'Content-Type': 'text/plain' }
         }));
-      };
+      }) as typeof global.fetch;
 
       const response = await client.get('/text');
       
@@ -215,7 +218,9 @@ describe('HTTPClient', () => {
 
   describe('error handling', () => {
     it('should handle network errors', async () => {
-      global.fetch = () => Promise.reject(new Error('Network error'));
+      global.fetch = ((input: RequestInfo | URL) => {
+        return Promise.reject(new Error('Network error'));
+      }) as typeof global.fetch;
 
       try {
         await client.get('/users');
@@ -226,7 +231,7 @@ describe('HTTPClient', () => {
     });
 
     it('should handle timeout', async () => {
-      global.fetch = () => {
+      global.fetch = ((input: RequestInfo | URL) => {
         return new Promise((resolve) => {
           setTimeout(() => {
             resolve(new Response(JSON.stringify({}), {
@@ -235,7 +240,7 @@ describe('HTTPClient', () => {
             }));
           }, 100);
         });
-      };
+      }) as typeof global.fetch;
 
       try {
         await client.request('/slow', { timeout: 10 });
@@ -250,13 +255,13 @@ describe('HTTPClient', () => {
     it('should prepend base URL to requests', async () => {
       let fullUrl = '';
       
-      global.fetch = (url: string) => {
-        fullUrl = url;
+      global.fetch = ((input: RequestInfo | URL) => {
+        fullUrl = input.toString();
         return Promise.resolve(new Response(JSON.stringify({}), {
           status: 200,
           headers: { 'Content-Type': 'application/json' }
         }));
-      };
+      }) as typeof global.fetch;
 
       const customClient = new HTTPClient('https://api.example.com/v1');
       await customClient.get('/users');
@@ -269,13 +274,13 @@ describe('HTTPClient', () => {
     it('should include credentials by default', async () => {
       let credentials = '';
       
-      global.fetch = (url: string, options: any) => {
-        credentials = options.credentials;
+      global.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+        credentials = init?.credentials || '';
         return Promise.resolve(new Response(JSON.stringify({}), {
           status: 200,
           headers: { 'Content-Type': 'application/json' }
         }));
-      };
+      }) as typeof global.fetch;
 
       await client.get('/users');
       expect(credentials).to.equal('include');
