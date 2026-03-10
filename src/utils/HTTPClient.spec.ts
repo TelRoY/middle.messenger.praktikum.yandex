@@ -32,7 +32,7 @@ describe('HTTPClient', () => {
     it('should handle GET requests with params', async () => {
       let calledUrl = '';
       
-      global.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+      global.fetch = ((input: RequestInfo | URL, _init?: RequestInit) => {
         calledUrl = input.toString();
         return Promise.resolve(new Response(JSON.stringify({}), {
           status: 200,
