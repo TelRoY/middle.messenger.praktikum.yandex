@@ -32,8 +32,7 @@ describe('HTTPClient', () => {
     it('should handle GET requests with params', async () => {
       let calledUrl = '';
       
-      // Правильная типизация для fetch
-      global.fetch = ((input: RequestInfo | URL) => {
+      global.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
         calledUrl = input.toString();
         return Promise.resolve(new Response(JSON.stringify({}), {
           status: 200,
@@ -53,7 +52,7 @@ describe('HTTPClient', () => {
     it('should make GET request', async () => {
       let calledMethod = '';
       
-      global.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+      global.fetch = ((_input: RequestInfo | URL, init?: RequestInit) => {
         calledMethod = init?.method || 'GET';
         return Promise.resolve(new Response(JSON.stringify({}), {
           status: 200,
@@ -68,7 +67,7 @@ describe('HTTPClient', () => {
     it('should make POST request', async () => {
       let calledMethod = '';
       
-      global.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+      global.fetch = ((_input: RequestInfo | URL, init?: RequestInit) => {
         calledMethod = init?.method || 'GET';
         return Promise.resolve(new Response(JSON.stringify({}), {
           status: 200,
@@ -83,7 +82,7 @@ describe('HTTPClient', () => {
     it('should make PUT request', async () => {
       let calledMethod = '';
       
-      global.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+      global.fetch = ((_input: RequestInfo | URL, init?: RequestInit) => {
         calledMethod = init?.method || 'GET';
         return Promise.resolve(new Response(JSON.stringify({}), {
           status: 200,
@@ -98,7 +97,7 @@ describe('HTTPClient', () => {
     it('should make DELETE request', async () => {
       let calledMethod = '';
       
-      global.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+      global.fetch = ((_input: RequestInfo | URL, init?: RequestInit) => {
         calledMethod = init?.method || 'GET';
         return Promise.resolve(new Response(JSON.stringify({}), {
           status: 200,
@@ -115,7 +114,7 @@ describe('HTTPClient', () => {
     it('should set Content-Type to application/json for JSON data', async () => {
       let contentType = '';
       
-      global.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+      global.fetch = ((_input: RequestInfo | URL, init?: RequestInit) => {
         const headers = init?.headers as Record<string, string>;
         contentType = headers?.['Content-Type'] || '';
         return Promise.resolve(new Response(JSON.stringify({}), {
@@ -132,7 +131,7 @@ describe('HTTPClient', () => {
       let contentType: string | undefined = '';
       const formData = new FormData();
       
-      global.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+      global.fetch = ((_input: RequestInfo | URL, init?: RequestInit) => {
         const headers = init?.headers as Record<string, string>;
         contentType = headers?.['Content-Type'];
         return Promise.resolve(new Response(JSON.stringify({}), {
@@ -148,7 +147,7 @@ describe('HTTPClient', () => {
     it('should include custom headers', async () => {
       let headers: Record<string, string> = {};
       
-      global.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+      global.fetch = ((_input: RequestInfo | URL, init?: RequestInit) => {
         headers = (init?.headers as Record<string, string>) || {};
         return Promise.resolve(new Response(JSON.stringify({}), {
           status: 200,
@@ -168,7 +167,7 @@ describe('HTTPClient', () => {
     it('should return successful response with data', async () => {
       const responseData = { id: 1, name: 'John' };
       
-      global.fetch = ((input: RequestInfo | URL) => {
+      global.fetch = ((_input: RequestInfo | URL) => {
         return Promise.resolve(new Response(JSON.stringify(responseData), {
           status: 200,
           statusText: 'OK',
@@ -185,7 +184,7 @@ describe('HTTPClient', () => {
     });
 
     it('should return error response', async () => {
-      global.fetch = ((input: RequestInfo | URL) => {
+      global.fetch = ((_input: RequestInfo | URL) => {
         return Promise.resolve(new Response(JSON.stringify({ error: 'Not found' }), {
           status: 404,
           statusText: 'Not Found',
@@ -203,7 +202,7 @@ describe('HTTPClient', () => {
     it('should handle text response', async () => {
       const textData = 'Plain text response';
       
-      global.fetch = ((input: RequestInfo | URL) => {
+      global.fetch = ((_input: RequestInfo | URL) => {
         return Promise.resolve(new Response(textData, {
           status: 200,
           headers: { 'Content-Type': 'text/plain' }
@@ -218,7 +217,7 @@ describe('HTTPClient', () => {
 
   describe('error handling', () => {
     it('should handle network errors', async () => {
-      global.fetch = ((input: RequestInfo | URL) => {
+      global.fetch = ((_input: RequestInfo | URL) => {
         return Promise.reject(new Error('Network error'));
       }) as typeof global.fetch;
 
@@ -231,7 +230,7 @@ describe('HTTPClient', () => {
     });
 
     it('should handle timeout', async () => {
-      global.fetch = ((input: RequestInfo | URL) => {
+      global.fetch = ((_input: RequestInfo | URL) => {
         return new Promise((resolve) => {
           setTimeout(() => {
             resolve(new Response(JSON.stringify({}), {
@@ -255,7 +254,7 @@ describe('HTTPClient', () => {
     it('should prepend base URL to requests', async () => {
       let fullUrl = '';
       
-      global.fetch = ((input: RequestInfo | URL) => {
+      global.fetch = ((input: RequestInfo | URL, _init?: RequestInit) => {
         fullUrl = input.toString();
         return Promise.resolve(new Response(JSON.stringify({}), {
           status: 200,
@@ -274,7 +273,7 @@ describe('HTTPClient', () => {
     it('should include credentials by default', async () => {
       let credentials = '';
       
-      global.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+      global.fetch = ((_input: RequestInfo | URL, init?: RequestInit) => {
         credentials = init?.credentials || '';
         return Promise.resolve(new Response(JSON.stringify({}), {
           status: 200,
