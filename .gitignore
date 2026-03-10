@@ -12,8 +12,6 @@ dist-ssr
 *.local
 assets
 dist
-# Editor directories and files
-# package-lock.json
 server.js
 .vscode/*
 !.vscode/extensions.json
@@ -25,3 +23,4 @@ server.js
 *.sln
 *.sw?
 vite.testing.handlebars.js
+.npmrc
