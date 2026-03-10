@@ -1,1 +1,3 @@
-npm test
+#!/usr/bin/env bash
+
+npm lint-staged
