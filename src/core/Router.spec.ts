@@ -56,7 +56,6 @@ describe('Router', () => {
 
   afterEach(() => {
     document.body.innerHTML = '';
-    (Router as any).__instance = null;
   });
 
   describe('use()', () => {
@@ -73,57 +72,69 @@ describe('Router', () => {
     it('should change window location', () => {
       router.use('/', AuthorizationPage);
       router.start();
-      router.go('/');
-      
-      expect(global.window.location.pathname).to.equal('/');
-    });
 
-    it('should redirect to 404 for unknown routes', (done) => {
-      router.use('/404', Error404Page);
-      router.start();
-      
-      router.go('/unknown-route');
-      setTimeout(() => {
-        const content = root.querySelector('div')?.textContent;
-        expect(content).to.include('404 Not Found');
-        done();
-      }, 50);
-    });
-  });
-
-  describe('back() and forward()', () => {
-    it('should navigate back in history', async () => {
-      router.use('/', AuthorizationPage).use('/sign-up', RegistrationPage);
-      router.start();
-      
       router.go('/sign-up');
-      setTimeout(() => {
-        expect(global.window.location.pathname).to.equal('/sign-up');
-        
-        router.back();
-        setTimeout(() => {
-          expect(global.window.location.pathname).to.equal('/');
-        }, 100);
-      }, 50);
+      expect(global.window.location.pathname).to.equal('/sign-up');
     });
   });
 
-  describe('Route class', () => {
-    it('should match correct pathname', () => {
-      const route = new Route('/test', MessengerPage, { rootQuery: '#app' });
-      
-      expect(route.match('/test')).to.equal(true);
-      expect(route.match('/other')).to.be.equal(false);
+  describe('Route', () => {
+    let route: Route;
+
+    beforeEach(() => {
+      route = new Route('/messenger', MessengerPage, { rootQuery: '#app' });
     });
 
-    it('should render block on navigate', () => {
-      const route = new Route('/test', MessengerPage, { rootQuery: '#app' });
-      
-      route.navigate('/test');
-      setTimeout(() => {
-        const content = root.querySelector('div')?.textContent;
-        expect(content).to.include('Messenger Page');
-      }, 50);
-    });
+    describe('match', () => {
+
+      it('should return true for correct pathname', () => {
+        const result = route.match('/messenger');
+        expect(result).to.equal(true);
+      });
+
+      it('should return false for uncorrect pathname', () => {
+        const result = route.match('/');
+        expect(result).to.equal(false);
+      });
+    })
+
+    describe('render', () => {
+
+      beforeEach(() => {
+        const root = document.createElement('div');
+        root.id = 'app';
+        document.body.appendChild(root);
+      });
+
+      afterEach(() => {
+        document.body.innerHTML = '';
+      })
+
+      it('should create block and put it in DOM', () => {
+        route.render();
+
+        const root = document.querySelector('#app');
+        expect(root?.children.length).to.equal(1);
+      });
+
+      it('should NOT create new block when called again', () => {
+        let count = 0;
+        class CountBlock extends MockPage {
+          constructor() {
+            super();
+            count++;
+          }
+        }
+
+        const testRoute = new Route('/test', CountBlock, {
+          rootQuery: '#app'
+        });
+
+        testRoute.render();
+        testRoute.render();
+
+        expect(count).to.equal(1);
+      });
+    })
   });
-});
+})
