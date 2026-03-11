@@ -69,6 +69,10 @@ npm run preview
 ```sh
 npm run start
 ```
+### Тестирование проекта:
+```sh
+npm test
+```
 
 ## Доступные страницы
 
