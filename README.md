@@ -130,3 +130,6 @@ npm test
 
 ### Домен из Netlify
 [https://my-mate.netlify.app/]
+
+### Домен GitHub Pages
+[https://telroy.github.io/MyMate/]
